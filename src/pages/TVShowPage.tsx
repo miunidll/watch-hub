@@ -36,6 +36,7 @@ const TVShowPage = () => {
   // Keep refs in sync with state
   useEffect(() => {
     autoplayRef.current = autoplay;
+    console.log('🔄 Autoplay ref updated to:', autoplay);
   }, [autoplay]);
 
   useEffect(() => {
@@ -54,7 +55,10 @@ const TVShowPage = () => {
       // Load settings
       const settings = await getUserSettings(user.uid);
       if (settings && settings.autoplay !== undefined) {
+        console.log('📥 Loading autoplay setting:', settings.autoplay);
         setAutoplay(settings.autoplay);
+      } else {
+        console.log('ℹ️ No saved autoplay setting, using default: true');
       }
       
       // Load last watched episode
@@ -119,7 +123,11 @@ const TVShowPage = () => {
     const currentEpisode = selectedEpisodeRef.current;
     const currentShow = showRef.current;
     
-    console.log('handleEpisodeEnded called!', { autoplay: currentAutoplay, selectedSeason: currentSeason?.id, selectedEpisode: currentEpisode?.id });
+    console.log('🎬 handleEpisodeEnded called!', { 
+      autoplay: currentAutoplay, 
+      selectedSeason: currentSeason?.id, 
+      selectedEpisode: currentEpisode?.id 
+    });
     
     // Check autoplay setting - if disabled, just return without doing anything
     if (!currentAutoplay) {
