@@ -19,24 +19,65 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
   }, [initialTime, url]);
 
   useEffect(() => {
+    console.log('🎬 VideoPlayer: useEffect running', { hasOnTimeUpdate: !!onTimeUpdate });
+    
     const player = playerRef.current?.plyr;
-    if (!player || !onTimeUpdate) return;
+    
+    if (!player) {
+      console.warn('⚠️ VideoPlayer: No player instance found');
+      return;
+    }
+    
+    if (!onTimeUpdate) {
+      console.log('ℹ️ VideoPlayer: No onTimeUpdate callback provided');
+      return;
+    }
+
+    console.log('✅ VideoPlayer: Player instance found, setting up listener');
 
     const handleTimeUpdate = () => {
-      if (player.currentTime) {
-        onTimeUpdate(player.currentTime);
+      const currentTime = player.currentTime;
+      console.log('⏱️ VideoPlayer: timeupdate event fired', { currentTime });
+      if (currentTime) {
+        console.log('📤 VideoPlayer: Calling onTimeUpdate callback with time:', currentTime);
+        onTimeUpdate(currentTime);
       }
     };
 
-    // Use addEventListener on the media element instead of plyr's .on method
-    const mediaElement = player.media;
-    if (mediaElement) {
-      mediaElement.addEventListener('timeupdate', handleTimeUpdate);
+    // Wait for player to be ready before attaching listener
+    const setupListener = () => {
+      const mediaElement = player.media;
+      console.log('🔍 VideoPlayer: Setting up listener', { hasMediaElement: !!mediaElement });
       
-      return () => {
-        mediaElement.removeEventListener('timeupdate', handleTimeUpdate);
-      };
+      if (mediaElement) {
+        console.log('✅ VideoPlayer: Attaching timeupdate listener to media element');
+        mediaElement.addEventListener('timeupdate', handleTimeUpdate);
+        
+        return () => {
+          console.log('🧹 VideoPlayer: Cleaning up timeupdate listener');
+          mediaElement.removeEventListener('timeupdate', handleTimeUpdate);
+        };
+      } else {
+        console.error('❌ VideoPlayer: Media element not found!');
+      }
+    };
+
+    // If player is already ready, setup immediately
+    if (player.ready) {
+      console.log('✅ VideoPlayer: Player already ready, setting up listener now');
+      return setupListener();
     }
+
+    // Otherwise wait for ready event
+    console.log('⏳ VideoPlayer: Waiting for player ready event');
+    player.on('ready', () => {
+      console.log('✅ VideoPlayer: Player ready event fired');
+      setupListener();
+    });
+
+    return () => {
+      console.log('🧹 VideoPlayer: Cleaning up ready event listener');
+    };
   }, [onTimeUpdate]);
 
   return (
