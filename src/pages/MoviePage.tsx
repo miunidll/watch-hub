@@ -27,22 +27,11 @@ const MoviePage = () => {
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id) {
-      console.log('⏱️ MoviePage: handleTimeUpdate called', { 
-        userId: user.uid, 
-        contentId: id, 
-        currentTime 
-      });
-      
       saveWatchProgress(user.uid, {
         contentId: id,
         contentType: 'movie',
         timestamp: currentTime,
         updatedAt: Date.now(),
-      });
-    } else {
-      console.warn('⚠️ MoviePage: Cannot save progress - missing user or id', { 
-        hasUser: !!user, 
-        hasId: !!id 
       });
     }
   }, [user, id]);
