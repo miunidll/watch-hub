@@ -1,4 +1,5 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Plyr from 'plyr-react';
 import 'plyr-react/plyr.css';
 
@@ -14,6 +15,25 @@ interface VideoPlayerProps {
 
 const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autostart = false, countdownOverlay }: VideoPlayerProps) => {
   const playerRef = useRef<any>(null);
+  const [plyrContainer, setPlyrContainer] = useState<HTMLElement | null>(null);
+
+  // Find Plyr's container for portal rendering
+  useEffect(() => {
+    const findContainer = () => {
+      const container = playerRef.current?.plyr?.elements?.container;
+      if (container) {
+        setPlyrContainer(container);
+      }
+    };
+
+    const timer = setTimeout(findContainer, 100);
+    const timer2 = setTimeout(findContainer, 500);
+    
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+    };
+  }, [url]);
 
   useEffect(() => {
     if (initialTime <= 0) return;
@@ -289,7 +309,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
           ],
         }}
       />
-      {countdownOverlay}
+      {plyrContainer && countdownOverlay && createPortal(countdownOverlay, plyrContainer)}
     </div>
   );
 };
