@@ -77,6 +77,9 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       const wasFullscreen = player.fullscreen?.active || false;
       console.log('🔄 Changing video source. Was fullscreen:', wasFullscreen);
       
+      // Store current time
+      const currentTime = player.currentTime || 0;
+      
       player.source = {
         type: 'video',
         title: title,
@@ -91,43 +94,33 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       
       // Restore fullscreen after source change
       if (wasFullscreen) {
-        const enterFullscreen = () => {
-          try {
-            if (player.fullscreen && !player.fullscreen.active) {
-              player.fullscreen.enter();
-              console.log('🖥️ Attempting to restore fullscreen');
-            }
-          } catch (e) {
-            console.log('Failed to enter fullscreen:', e);
-          }
+        // Wait for loadedmetadata to ensure player is ready
+        const restoreFullscreen = () => {
+          console.log('Attempting to restore fullscreen, current state:', player.fullscreen?.active);
+          
+          // Use a small delay to ensure DOM is ready
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (player.fullscreen && !player.fullscreen.active) {
+                player.fullscreen.enter();
+                console.log('✅ Fullscreen.enter() called');
+              }
+            });
+          });
         };
         
-        // Use multiple event listeners to catch when video is ready
-        const readyHandler = () => {
-          console.log('Ready event fired, entering fullscreen');
-          enterFullscreen();
+        const metadataHandler = () => {
+          console.log('📊 Metadata loaded');
+          restoreFullscreen();
+          player.off('loadedmetadata', metadataHandler);
         };
         
-        const canplayHandler = () => {
-          console.log('Canplay event fired, entering fullscreen');
-          enterFullscreen();
-        };
+        player.on('loadedmetadata', metadataHandler);
         
-        player.on('ready', readyHandler);
-        player.on('canplay', canplayHandler);
-        
-        // Also try with timeouts as fallback
-        setTimeout(enterFullscreen, 100);
-        setTimeout(enterFullscreen, 500);
-        setTimeout(enterFullscreen, 1000);
-        
-        // Clean up listeners after a delay
-        setTimeout(() => {
-          try {
-            player.off('ready', readyHandler);
-            player.off('canplay', canplayHandler);
-          } catch (e) {}
-        }, 2000);
+        // Fallback attempts
+        setTimeout(restoreFullscreen, 200);
+        setTimeout(restoreFullscreen, 500);
+        setTimeout(restoreFullscreen, 1000);
       }
     }
   }, [url, title]);
