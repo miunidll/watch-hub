@@ -68,6 +68,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
   useEffect(() => {
     if (!autostart) return;
 
+    console.log('Autostart effect triggered for URL:', url);
     let autostartExecuted = false;
 
     const startPlayback = () => {
@@ -108,7 +109,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       clearTimeout(timer);
       autostartExecuted = true;
     };
-  }, [autostart]);
+  }, [autostart, url]);
 
   useEffect(() => {
     if (!onTimeUpdate && !onEnded) return;
