@@ -41,7 +41,7 @@ const Auth = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-primary mb-4">
             <Film className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold">StreamFlix</h1>
+          <h1 className="text-3xl font-bold">MiuNet</h1>
           <p className="text-muted-foreground mt-2">
             {isLogin ? 'Welcome back' : 'Create your account'}
           </p>

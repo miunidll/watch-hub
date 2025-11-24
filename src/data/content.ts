@@ -128,5 +128,225 @@ export const contentData: Content[] = [
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
     year: 2017,
     duration: '2h 44m'
-  }
+  },
+  {
+  id: '7',
+  title: 'The Dark Knight',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?w=400&h=600&fit=crop',
+  description: 'Batman faces the Joker, a criminal mastermind who plunges Gotham into chaos.',
+  trailer: 'EXeTwQWrcwY',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+  year: 2008,
+  duration: '2h 32m'
+},
+{
+  id: '8',
+  title: 'Avatar',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1542204637-e67bc7d41e3b?w=400&h=600&fit=crop',
+  description: 'A paraplegic Marine dispatched to the moon Pandora becomes torn between following orders and protecting an alien civilization.',
+  trailer: '5PSNL1qE6VY',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+  year: 2009,
+  duration: '2h 42m'
+},
+{
+  id: '9',
+  title: 'The Shawshank Redemption',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1535398089889-dd807df1dfb0?w=400&h=600&fit=crop',
+  description: 'Two imprisoned men bond over years, finding solace and redemption through acts of decency.',
+  trailer: '6hB3S9bIaco',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+  year: 1994,
+  duration: '2h 22m'
+},
+{
+  id: '10',
+  title: 'Fight Club',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1517602302552-471fe67acf66?w=400&h=600&fit=crop',
+  description: 'An office worker and soap maker form an underground fight club that evolves into something more.',
+  trailer: 'SUXWAEX2jlg',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+  year: 1999,
+  duration: '2h 19m'
+},
+{
+  id: '11',
+  title: 'Gladiator',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1612965324449-a229ede4802b?w=400&h=600&fit=crop',
+  description: 'A betrayed Roman general seeks revenge while rising as a gladiator.',
+  trailer: 'owK1qxDselE',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+  year: 2000,
+  duration: '2h 35m'
+},
+{
+  id: '12',
+  title: 'The Lord of the Rings: The Fellowship of the Ring',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1526312426976-f4d754fa9bd6?w=400&h=600&fit=crop',
+  description: 'A hobbit begins his journey to destroy a powerful ring and save Middle-earth.',
+  trailer: 'V75dMMIW2B4',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+  year: 2001,
+  duration: '2h 58m'
+},
+{
+  id: '13',
+  title: 'The Godfather',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=400&h=600&fit=crop',
+  description: 'The aging patriarch of an organized crime dynasty transfers control to his reluctant son.',
+  trailer: 'sY1S34973zA',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+  year: 1972,
+  duration: '2h 55m'
+},
+{
+  id: '14',
+  title: 'The Wolf of Wall Street',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400&h=600&fit=crop',
+  description: 'A stockbroker rises to wealth through corruption and fraud.',
+  trailer: 'iszwuX1AK6A',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+  year: 2013,
+  duration: '3h 0m'
+},
+{
+  id: '15',
+  title: 'Pulp Fiction',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1517602302552-471fe67acf66?w=400&h=600&fit=crop',
+  description: 'Stories of crime intertwine in a stylish and chaotic narrative.',
+  trailer: 's7EdQ4FqbhY',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
+  year: 1994,
+  duration: '2h 34m'
+},
+{
+  id: '16',
+  title: 'Dune',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1635860396990-03dfb5a12ddf?w=400&h=600&fit=crop',
+  description: 'A gifted young man must travel to the most dangerous planet to secure his people’s future.',
+  trailer: 'n9xhJrPXop4',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+  year: 2021,
+  duration: '2h 35m'
+},
+{
+  id: '17',
+  title: 'Mad Max: Fury Road',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&h=600&fit=crop',
+  description: 'In a post-apocalyptic wasteland, Max teams up with Furiosa to escape a tyrant.',
+  trailer: 'hEJnMQG9ev8',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+  year: 2015,
+  duration: '2h 0m'
+},
+{
+  id: '18',
+  title: 'The Social Network',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1485217988980-11786ced9454?w=400&h=600&fit=crop',
+  description: 'The story of Facebook’s founding and the lawsuits that followed.',
+  trailer: 'lB95KLmpLR4',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+  year: 2010,
+  duration: '2h 1m'
+},
+{
+  id: '19',
+  title: 'Whiplash',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=600&fit=crop',
+  description: 'A young drummer is pushed to the brink by an abusive music instructor.',
+  trailer: '7d_jQycdQGo',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+  year: 2014,
+  duration: '1h 47m'
+},
+{
+  id: '20',
+  title: 'Tenet',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?w=400&h=600&fit=crop',
+  description: 'A secret agent manipulates time to prevent World War III.',
+  trailer: 'L3pk_TBkihU',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+  year: 2020,
+  duration: '2h 30m'
+},
+{
+  id: '21',
+  title: 'The Revenant',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=600&fit=crop',
+  description: 'A frontiersman fights for survival after being left for dead.',
+  trailer: 'LoebZZ8K5N0',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+  year: 2015,
+  duration: '2h 36m'
+},
+{
+  id: '22',
+  title: 'Joker',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1542204637-e67bc7d41e3b?w=400&h=600&fit=crop',
+  description: 'A mentally struggling comedian descends into madness and becomes the infamous Joker.',
+  trailer: 'zAGVQLHvwOY',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+  year: 2019,
+  duration: '2h 2m'
+},
+{
+  id: '23',
+  title: 'Interstellar 2 (Fan Concept)',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1447433909565-04bfc496fe9f?w=400&h=600&fit=crop',
+  description: 'A conceptual sequel imagining humanity’s next leap among the stars.',
+  trailer: 'zSWdZVtXT7E',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
+  year: 2025,
+  duration: '2h 41m'
+},
+{
+  id: '24',
+  title: 'Inglourious Basterds',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&h=600&fit=crop',
+  description: 'A group of soldiers plots to assassinate Nazi leadership.',
+  trailer: 'KnrRy6kSFF0',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+  year: 2009,
+  duration: '2h 33m'
+},
+{
+  id: '25',
+  title: 'Shutter Island',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&h=600&fit=crop',
+  description: 'A U.S. Marshal investigates the disappearance of a patient from a mental institution.',
+  trailer: '5iaYLCiq5RM',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+  year: 2010,
+  duration: '2h 18m'
+},
+{
+  id: '26',
+  title: 'Her',
+  type: 'movie',
+  poster: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=600&fit=crop',
+  description: 'A lonely writer falls in love with an advanced operating system.',
+  trailer: 'ne6p6MfLBxc',
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+  year: 2013,
+  duration: '2h 6m'
+}
 ];

@@ -23,8 +23,8 @@ const Index = () => {
                 <Film className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">StreamFlix</h1>
-                <p className="text-sm text-muted-foreground hidden sm:block">Watch unlimited movies & TV shows</p>
+                <h1 className="text-2xl font-bold text-foreground">MiuNet</h1>
+                <p className="text-sm text-muted-foreground hidden sm:block">Watch unlimited movies & TV shows, the miuni way..</p>
               </div>
             </div>
 
@@ -33,7 +33,7 @@ const Index = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search movies & shows..."
+                  placeholder="Search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -77,7 +77,7 @@ const Index = () => {
       <footer className="border-t border-border mt-20">
         <div className="container mx-auto px-6 sm:px-8 py-8">
           <p className="text-center text-muted-foreground text-sm">
-            © 2024 StreamFlix. All rights reserved.
+            © 2025 MiuNet. All rights reserved.
           </p>
         </div>
       </footer>
