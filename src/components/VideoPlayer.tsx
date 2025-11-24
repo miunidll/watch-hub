@@ -13,9 +13,20 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
-    if (playerRef.current?.plyr && initialTime > 0) {
-      playerRef.current.plyr.currentTime = initialTime;
-    }
+    const timer = setTimeout(() => {
+      const player = playerRef.current?.plyr;
+      if (player && initialTime > 0) {
+        if (typeof player.on === 'function') {
+          player.on('ready', () => {
+            player.currentTime = initialTime;
+          });
+        } else if (player.media) {
+          player.media.currentTime = initialTime;
+        }
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [initialTime, url]);
 
   useEffect(() => {
