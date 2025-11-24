@@ -65,6 +65,28 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     };
   }, [initialTime]);
 
+  // Update video source when URL changes without recreating player
+  useEffect(() => {
+    const player = playerRef.current?.plyr;
+    if (!player || !url) return;
+
+    // Only update if the source is different
+    const currentSource = player.source?.sources?.[0]?.src;
+    if (currentSource !== url) {
+      player.source = {
+        type: 'video',
+        title: title,
+        sources: [
+          {
+            src: url,
+            type: 'video/mp4',
+          },
+        ],
+      };
+      console.log('📹 Updated video source to:', title);
+    }
+  }, [url, title]);
+
   useEffect(() => {
     if (!autostart) return;
 
