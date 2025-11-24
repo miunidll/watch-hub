@@ -17,8 +17,10 @@ export const saveUserSettings = async (
       ...settings,
       updatedAt: Date.now(),
     }, { merge: true });
+    
+    console.log('✅ Settings saved:', settings);
   } catch (error) {
-    console.error('Error saving user settings:', error);
+    console.error('❌ Error saving user settings:', error);
   }
 };
 
@@ -30,12 +32,15 @@ export const getUserSettings = async (
     const settingsSnap = await getDoc(settingsRef);
     
     if (settingsSnap.exists()) {
-      return settingsSnap.data() as UserSettings;
+      const data = settingsSnap.data() as UserSettings;
+      console.log('✅ Settings loaded:', data);
+      return data;
     }
     
+    console.log('ℹ️ No settings found for user');
     return null;
   } catch (error) {
-    console.error('Error getting user settings:', error);
+    console.error('❌ Error getting user settings:', error);
     return null;
   }
 };
