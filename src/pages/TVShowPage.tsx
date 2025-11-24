@@ -175,6 +175,7 @@ const TVShowPage = () => {
                 {selectedEpisode.title} <span className="text-muted-foreground">({selectedEpisode.duration})</span>
               </h3>
               <VideoPlayer 
+                key={`${id}-${selectedEpisode.id}`}
                 url={selectedEpisode.videoUrl} 
                 title={selectedEpisode.title}
                 initialTime={initialTime}
