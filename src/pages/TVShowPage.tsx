@@ -85,11 +85,6 @@ const TVShowPage = () => {
       setSelectedEpisode(newEpisode);
       setInitialTime(0);
       setShouldAutostart(true);
-      
-      toast({
-        title: wasSeasonChange ? "Next Season" : "Next Episode",
-        description: `Now playing: ${newEpisode.title}`,
-      });
     }, 50);
   }, [nextEpisodeInfo, selectedSeason, toast]);
 
