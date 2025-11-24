@@ -45,7 +45,11 @@ const TVShowPage = () => {
     showRef.current = show;
   }, [selectedSeason, selectedEpisode, show]);
 
-
+  useEffect(() => {
+    if (show) {
+      document.title = `${show.title} - TV Show`;
+    }
+  }, [show]);
 
   // Load user settings and last watched episode on mount
   useEffect(() => {
