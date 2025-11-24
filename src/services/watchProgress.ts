@@ -15,7 +15,12 @@ export const saveWatchProgress = async (
   progress: WatchProgress
 ) => {
   try {
-    const progressRef = doc(db, 'watchProgress', `${userId}_${progress.contentId}`);
+    // For TV shows, include episode ID in the document ID to track per-episode progress
+    const docId = progress.contentType === 'tv' && progress.episodeId
+      ? `${userId}_${progress.contentId}_${progress.episodeId}`
+      : `${userId}_${progress.contentId}`;
+    
+    const progressRef = doc(db, 'watchProgress', docId);
     await setDoc(progressRef, {
       ...progress,
       userId,
@@ -29,10 +34,16 @@ export const saveWatchProgress = async (
 
 export const getWatchProgress = async (
   userId: string,
-  contentId: string
+  contentId: string,
+  episodeId?: string
 ): Promise<WatchProgress | null> => {
   try {
-    const progressRef = doc(db, 'watchProgress', `${userId}_${contentId}`);
+    // For TV shows with episode ID, get episode-specific progress
+    const docId = episodeId
+      ? `${userId}_${contentId}_${episodeId}`
+      : `${userId}_${contentId}`;
+    
+    const progressRef = doc(db, 'watchProgress', docId);
     const progressSnap = await getDoc(progressRef);
     
     if (progressSnap.exists()) {
