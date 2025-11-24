@@ -18,37 +18,22 @@ export const saveWatchProgress = async (
   const maxRetries = 3;
   
   try {
-    // For TV shows, include BOTH season and episode ID to handle duplicate episode numbers
     const docId = progress.contentType === 'tv' && progress.seasonId && progress.episodeId
       ? `${userId}_${progress.contentId}_${progress.seasonId}_${progress.episodeId}`
       : `${userId}_${progress.contentId}`;
     
-    console.log(`🔄 Firestore save attempt ${retryCount + 1}:`, { 
-      docId, 
-      timestamp: progress.timestamp,
-      seasonId: progress.seasonId,
-      episodeId: progress.episodeId 
-    });
-    
     const progressRef = doc(db, 'watchProgress', docId);
     
-    // Use setDoc with merge to avoid conflicts
     await setDoc(progressRef, {
       ...progress,
       userId,
       updatedAt: Date.now(),
     }, { merge: true });
     
-    console.log('✅ Firestore saved successfully');
     return { success: true };
   } catch (error: any) {
-    console.error(`❌ Firestore error (attempt ${retryCount + 1}):`, error);
-    
-    // Retry logic with exponential backoff
     if (retryCount < maxRetries) {
-      const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
-      console.log(`⏳ Retrying in ${delay}ms...`);
-      
+      const delay = Math.pow(2, retryCount) * 1000;
       await new Promise(resolve => setTimeout(resolve, delay));
       return saveWatchProgress(userId, progress, retryCount + 1);
     }

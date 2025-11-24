@@ -15,8 +15,6 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
   useEffect(() => {
     if (initialTime <= 0) return;
 
-    console.log('⏱️ Setting initial time to:', initialTime);
-
     let timeSet = false;
 
     const setInitialTimestamp = () => {
@@ -29,13 +27,11 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         try {
           player.currentTime = initialTime;
           timeSet = true;
-          console.log('✅ Initial time set to:', initialTime);
         } catch (error) {
-          console.error('❌ Error setting initial time:', error);
+          // Silently fail
         }
       };
 
-      // Try setting time on these events (only once each)
       const readyHandler = () => {
         setTime();
         player.off('ready', readyHandler);
@@ -55,7 +51,6 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       player.on('loadedmetadata', metadataHandler);
       player.on('canplay', canplayHandler);
 
-      // Fallback timeouts
       setTimeout(setTime, 500);
       setTimeout(setTime, 1500);
     };
@@ -64,44 +59,29 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
 
     return () => {
       clearTimeout(timer);
-      timeSet = true; // Prevent any pending callbacks
+      timeSet = true;
     };
   }, [initialTime]);
 
   useEffect(() => {
     if (!onTimeUpdate) return;
 
-    console.log('🔧 VideoPlayer: Initializing event listeners for new episode');
-
     let isActive = true;
     let listenersAttached = false;
     const cleanupFns: (() => void)[] = [];
 
     const attachListeners = () => {
-      if (!isActive) {
-        console.log('⚠️ Effect already cleaned up, aborting attach');
-        return false;
-      }
+      if (!isActive) return false;
 
       const player = playerRef.current?.plyr;
       
-      if (!player) {
-        console.log('❌ No player found');
-        return false;
-      }
+      if (!player) return false;
 
-      // Check if player has required methods
       if (typeof player.on !== 'function' || typeof player.off !== 'function') {
-        console.log('⚠️ Player not ready yet (missing methods)');
         return false;
       }
 
-      if (listenersAttached) {
-        console.log('⚠️ Listeners already attached to this player instance');
-        return true;
-      }
-
-      console.log('✅ Attaching fresh event listeners');
+      if (listenersAttached) return true;
 
       let lastSaveTime = 0;
       const SAVE_INTERVAL = 3000;
@@ -113,14 +93,12 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         
         if (currentTime && now - lastSaveTime >= SAVE_INTERVAL) {
           lastSaveTime = now;
-          console.log('📹 Auto-save at:', currentTime.toFixed(2));
           onTimeUpdate(currentTime);
         }
       };
 
       const handlePause = () => {
         if (!isActive) return;
-        console.log('⏸️ PAUSE - immediate save');
         const currentTime = player.currentTime;
         if (currentTime) {
           onTimeUpdate(currentTime);
@@ -129,14 +107,12 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
 
       const handleEnded = () => {
         if (!isActive) return;
-        console.log('🏁 ENDED - final save');
         const currentTime = player.currentTime;
         if (currentTime) {
           onTimeUpdate(currentTime);
         }
       };
 
-      // Safely remove any old listeners first
       try {
         if (typeof player.off === 'function') {
           player.off('timeupdate');
@@ -144,21 +120,17 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
           player.off('ended');
         }
       } catch (error) {
-        console.warn('⚠️ Error removing old listeners (ignored):', error);
+        // Ignore
       }
 
-      // Attach new listeners
       player.on('timeupdate', handleTimeUpdate);
       player.on('pause', handlePause);
       player.on('ended', handleEnded);
       
       listenersAttached = true;
-      console.log('✅ Event listeners attached successfully');
 
-      // Store cleanup
       cleanupFns.push(() => {
         try {
-          console.log('🧹 Removing event listeners');
           const currentPlayer = playerRef.current?.plyr;
           if (currentPlayer && typeof currentPlayer.off === 'function') {
             currentPlayer.off('timeupdate', handleTimeUpdate);
@@ -166,26 +138,19 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
             currentPlayer.off('ended', handleEnded);
           }
         } catch (error) {
-          console.warn('⚠️ Error during cleanup (ignored):', error);
+          // Ignore
         }
       });
 
       return true;
     };
 
-    // Immediate attempt
     const immediateSuccess = attachListeners();
     
     if (!immediateSuccess) {
-      console.log('⏳ Waiting for player to be ready...');
-      
-      // Wait for ready event
       const player = playerRef.current?.plyr;
       if (player && typeof player.once === 'function') {
-        const readyHandler = () => {
-          console.log('🎬 Player ready event fired');
-          attachListeners();
-        };
+        const readyHandler = () => attachListeners();
         
         player.once('ready', readyHandler);
         cleanupFns.push(() => {
@@ -195,24 +160,17 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
               p.off('ready', readyHandler);
             }
           } catch (e) {
-            // Ignore cleanup errors
+            // Ignore
           }
         });
       }
       
-      // Backup retry attempts
       const retry1 = setTimeout(() => {
-        if (!listenersAttached && isActive) {
-          console.log('⏳ Retry attempt 1...');
-          attachListeners();
-        }
+        if (!listenersAttached && isActive) attachListeners();
       }, 300);
       
       const retry2 = setTimeout(() => {
-        if (!listenersAttached && isActive) {
-          console.log('⏳ Retry attempt 2...');
-          attachListeners();
-        }
+        if (!listenersAttached && isActive) attachListeners();
       }, 700);
       
       cleanupFns.push(() => {
@@ -222,14 +180,13 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
     }
 
     return () => {
-      console.log('🧹 Cleaning up VideoPlayer effect');
       isActive = false;
       listenersAttached = false;
       cleanupFns.forEach(fn => {
         try {
           fn();
         } catch (error) {
-          console.warn('⚠️ Cleanup error (ignored):', error);
+          // Ignore
         }
       });
     };
