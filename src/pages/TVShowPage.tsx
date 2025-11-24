@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getWatchProgress } from '@/services/watchProgress';
 import { watchProgressQueue } from '@/services/watchProgressQueue';
 import { getUserSettings, saveUserSettings } from '@/services/userSettings';
+import { getLastWatchedEpisode, saveLastWatchedEpisode } from '@/services/lastWatched';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -24,6 +25,7 @@ const TVShowPage = () => {
   const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
   const [initialTime, setInitialTime] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Refs to keep stable callbacks
   const autoplayRef = useRef(autoplay);
@@ -44,23 +46,40 @@ const TVShowPage = () => {
 
 
 
-  // Load user settings (autoplay preference) on mount
+  // Load user settings and last watched episode on mount
   useEffect(() => {
-    const loadSettings = async () => {
-      if (!user) return;
+    const loadUserData = async () => {
+      if (!user || !id || !show) return;
       
+      // Load settings
       const settings = await getUserSettings(user.uid);
       if (settings && settings.autoplay !== undefined) {
         setAutoplay(settings.autoplay);
       }
+      
+      // Load last watched episode
+      const lastWatched = await getLastWatchedEpisode(user.uid, id);
+      if (lastWatched && lastWatched.seasonId && lastWatched.episodeId) {
+        const season = show.seasons.find(s => s.id === lastWatched.seasonId);
+        if (season) {
+          const episode = season.episodes.find(e => e.id === lastWatched.episodeId);
+          if (episode) {
+            setSelectedSeason(season);
+            setSelectedEpisode(episode);
+            setInitialTime(lastWatched.timestamp || 0);
+          }
+        }
+      }
+      
+      setIsInitialLoad(false);
     };
     
-    loadSettings();
-  }, [user]);
+    loadUserData();
+  }, [user, id, show]);
 
   useEffect(() => {
     const loadProgress = async () => {
-      if (user && id && selectedSeason && selectedEpisode && !shouldAutostart) {
+      if (user && id && selectedSeason && selectedEpisode && !shouldAutostart && !isInitialLoad) {
         const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
         if (progress && progress.episodeId === selectedEpisode.id) {
           setInitialTime(progress.timestamp);
@@ -70,7 +89,7 @@ const TVShowPage = () => {
       }
     };
     loadProgress();
-  }, [user, id, selectedSeason?.id, selectedEpisode?.id]);
+  }, [user, id, selectedSeason?.id, selectedEpisode?.id, shouldAutostart, isInitialLoad]);
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
@@ -80,6 +99,15 @@ const TVShowPage = () => {
         timestamp: currentTime,
         seasonId: selectedSeason.id,
         episodeId: selectedEpisode.id,
+        updatedAt: Date.now(),
+      });
+      
+      // Also save as last watched episode
+      saveLastWatchedEpisode(user.uid, {
+        contentId: id,
+        seasonId: selectedSeason.id,
+        episodeId: selectedEpisode.id,
+        timestamp: currentTime,
         updatedAt: Date.now(),
       });
     }
