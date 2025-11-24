@@ -1,6 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { contentData, TVShow, Episode, Season } from '@/data/content';
+import VideoPlayer from '@/components/VideoPlayer';
+import AutoplayCountdown from '@/components/AutoplayCountdown';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
+import { getWatchProgress } from '@/services/watchProgress';
+import { watchProgressQueue } from '@/services/watchProgressQueue';
+import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+
+interface NextEpisodeInfo {
+  episode: Episode;
+  season: Season;
+}
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { contentData, TVShow } from '@/data/content';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Button } from '@/components/ui/button';
@@ -20,6 +38,8 @@ const TVShowPage = () => {
   const { user } = useAuth();
   const [autoplay, setAutoplay] = useState(true);
   const [shouldAutostart, setShouldAutostart] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [nextEpisodeInfo, setNextEpisodeInfo] = useState<NextEpisodeInfo | null>(null);
   
   const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
@@ -65,14 +85,8 @@ const TVShowPage = () => {
     // Check if there's a next episode in the current season
     if (currentEpisodeIndex < selectedSeason.episodes.length - 1) {
       const nextEpisode = selectedSeason.episodes[currentEpisodeIndex + 1];
-      setSelectedEpisode(nextEpisode);
-      setInitialTime(0);
-      setShouldAutostart(true);
-      
-      toast({
-        title: "Next Episode",
-        description: `Now playing: ${nextEpisode.title}`,
-      });
+      setNextEpisodeInfo({ episode: nextEpisode, season: selectedSeason });
+      setShowCountdown(true);
       return;
     }
 
@@ -82,15 +96,8 @@ const TVShowPage = () => {
       const nextSeason = show.seasons[currentSeasonIndex + 1];
       const firstEpisode = nextSeason.episodes[0];
       
-      setSelectedSeason(nextSeason);
-      setSelectedEpisode(firstEpisode);
-      setInitialTime(0);
-      setShouldAutostart(true);
-      
-      toast({
-        title: "Next Season",
-        description: `Season ${nextSeason.number}, Episode 1: ${firstEpisode.title}`,
-      });
+      setNextEpisodeInfo({ episode: firstEpisode, season: nextSeason });
+      setShowCountdown(true);
       return;
     }
 
@@ -100,6 +107,34 @@ const TVShowPage = () => {
       description: "You've finished watching all episodes!",
     });
   }, [selectedSeason, selectedEpisode, show, toast, autoplay]);
+
+  const handleCountdownComplete = useCallback(() => {
+    if (!nextEpisodeInfo) return;
+
+    const { episode, season } = nextEpisodeInfo;
+    
+    setSelectedSeason(season);
+    setSelectedEpisode(episode);
+    setInitialTime(0);
+    setShouldAutostart(true);
+    setShowCountdown(false);
+    setNextEpisodeInfo(null);
+
+    toast({
+      title: season.id !== selectedSeason?.id ? "Next Season" : "Next Episode",
+      description: `S${season.number} E${episode.number}: ${episode.title}`,
+    });
+  }, [nextEpisodeInfo, selectedSeason, toast]);
+
+  const handleCountdownCancel = useCallback(() => {
+    setShowCountdown(false);
+    setNextEpisodeInfo(null);
+    
+    toast({
+      title: "Autoplay Cancelled",
+      description: "Continue watching whenever you're ready.",
+    });
+  }, [toast]);
 
   if (!show) {
     return (
