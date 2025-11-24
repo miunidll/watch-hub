@@ -73,6 +73,9 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     // Only update if the source is different
     const currentSource = player.source?.sources?.[0]?.src;
     if (currentSource !== url) {
+      // Check if we're in fullscreen before changing source
+      const wasFullscreen = player.fullscreen?.active || false;
+      
       player.source = {
         type: 'video',
         title: title,
@@ -84,6 +87,22 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
         ],
       };
       console.log('📹 Updated video source to:', title);
+      
+      // Restore fullscreen after source change
+      if (wasFullscreen) {
+        // Wait for the new video to be ready before entering fullscreen
+        const enterFullscreen = () => {
+          if (player.fullscreen) {
+            player.fullscreen.enter();
+            console.log('🖥️ Restored fullscreen mode');
+          }
+        };
+        
+        // Try multiple times as the ready event timing can vary
+        player.once('ready', enterFullscreen);
+        setTimeout(enterFullscreen, 100);
+        setTimeout(enterFullscreen, 300);
+      }
     }
   }, [url, title]);
 
