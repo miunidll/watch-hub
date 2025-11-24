@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { contentData, TVShow } from '@/data/content';
@@ -19,8 +19,15 @@ const TVShowPage = () => {
   const show = contentData.find(c => c.id === id && c.type === 'tv') as TVShow;
   const { user } = useAuth();
   const [autoplay, setAutoplay] = useState(true);
+  const autoplayRef = useRef(autoplay);
   const [shouldAutostart, setShouldAutostart] = useState(false);
   
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    autoplayRef.current = autoplay;
+  }, [autoplay]);
+
   const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
   const [initialTime, setInitialTime] = useState(0);
@@ -54,8 +61,8 @@ const TVShowPage = () => {
   }, [user, id, selectedSeason, selectedEpisode]);
 
   const handleEpisodeEnded = useCallback(() => {
-    console.log('handleEpisodeEnded called!', { autoplay, selectedSeason: selectedSeason?.id, selectedEpisode: selectedEpisode?.id });
-    if (!selectedSeason || !selectedEpisode || !show || !autoplay) return;
+    console.log('handleEpisodeEnded called!', { autoplay: autoplayRef.current, selectedSeason: selectedSeason?.id, selectedEpisode: selectedEpisode?.id });
+    if (!selectedSeason || !selectedEpisode || !show || !autoplayRef.current) return;
 
     // Find current episode index
     const currentEpisodeIndex = selectedSeason.episodes.findIndex(
@@ -90,7 +97,7 @@ const TVShowPage = () => {
         description: "You've finished watching all episodes!",
       });
     }
-  }, [selectedSeason, selectedEpisode, show, toast, autoplay]);
+  }, [selectedSeason, selectedEpisode, show, toast]);
 
   if (!show) {
     return (
