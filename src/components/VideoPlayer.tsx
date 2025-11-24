@@ -15,22 +15,38 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
   useEffect(() => {
     if (initialTime <= 0) return;
 
-    const timer = setTimeout(() => {
+    console.log('⏱️ Setting initial time to:', initialTime);
+
+    const setInitialTimestamp = () => {
       const player = playerRef.current?.plyr;
-      if (!player) return;
+      if (!player) {
+        console.log('❌ No player available for initial time');
+        return;
+      }
 
       const setTime = () => {
-        player.currentTime = initialTime;
+        try {
+          player.currentTime = initialTime;
+          console.log('✅ Initial time set to:', initialTime);
+        } catch (error) {
+          console.error('❌ Error setting initial time:', error);
+        }
       };
 
-      // Try multiple approaches to ensure timestamp is set
-      if (player.ready) {
-        setTime();
-      } else if (typeof player.on === 'function') {
-        player.once('loadedmetadata', setTime);
-        player.once('canplay', setTime);
-      }
-    }, 200);
+      // Multiple attempts to ensure the time is set
+      const attempts = [
+        () => player.on('ready', setTime),
+        () => player.on('loadedmetadata', setTime),
+        () => player.on('canplay', setTime),
+        () => setTimeout(setTime, 500),
+        () => setTimeout(setTime, 1000),
+        () => setTimeout(setTime, 2000)
+      ];
+
+      attempts.forEach(attempt => attempt());
+    };
+
+    const timer = setTimeout(setInitialTimestamp, 100);
 
     return () => clearTimeout(timer);
   }, [initialTime]);
