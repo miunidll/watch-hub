@@ -11,7 +11,6 @@ import { watchProgressQueue } from '@/services/watchProgressQueue';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import CountdownOverlay from '@/components/CountdownOverlay';
 
 const TVShowPage = () => {
   const { id } = useParams();
@@ -21,8 +20,6 @@ const TVShowPage = () => {
   const { user } = useAuth();
   const [autoplay, setAutoplay] = useState(true);
   const [shouldAutostart, setShouldAutostart] = useState(false);
-  const [showCountdown, setShowCountdown] = useState(false);
-  const [nextEpisodeInfo, setNextEpisodeInfo] = useState<{ season: any; episode: any } | null>(null);
   
   const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
@@ -56,28 +53,6 @@ const TVShowPage = () => {
     }
   }, [user, id, selectedSeason, selectedEpisode]);
 
-  const playNextEpisode = useCallback(() => {
-    if (!nextEpisodeInfo) return;
-
-    console.log('Playing next episode:', nextEpisodeInfo.episode.title);
-    
-    const newSeason = nextEpisodeInfo.season;
-    const newEpisode = nextEpisodeInfo.episode;
-    const wasSeasonChange = newSeason.id !== selectedSeason?.id;
-    
-    // First, hide the countdown overlay immediately
-    setShowCountdown(false);
-    setNextEpisodeInfo(null);
-    
-    // Then update the episode after overlay is gone
-    setTimeout(() => {
-      setSelectedSeason(newSeason);
-      setSelectedEpisode(newEpisode);
-      setInitialTime(0);
-      setShouldAutostart(true);
-    }, 50);
-  }, [nextEpisodeInfo, selectedSeason, toast]);
-
   const handleEpisodeEnded = useCallback(() => {
     console.log('handleEpisodeEnded called!', { autoplay, selectedSeason: selectedSeason?.id, selectedEpisode: selectedEpisode?.id });
     if (!selectedSeason || !selectedEpisode || !show || !autoplay) return;
@@ -87,32 +62,34 @@ const TVShowPage = () => {
       ep => ep.id === selectedEpisode.id
     );
 
+    let nextSeason = selectedSeason;
+    let nextEpisode = null;
+
     // Check if there's a next episode in the current season
     if (currentEpisodeIndex < selectedSeason.episodes.length - 1) {
-      const nextEpisode = selectedSeason.episodes[currentEpisodeIndex + 1];
-      console.log('Setting next episode:', nextEpisode.title);
-      setNextEpisodeInfo({ season: selectedSeason, episode: nextEpisode });
-      setShowCountdown(true);
-      return;
+      nextEpisode = selectedSeason.episodes[currentEpisodeIndex + 1];
+    } else {
+      // Check if there's a next season
+      const currentSeasonIndex = show.seasons.findIndex(s => s.id === selectedSeason.id);
+      if (currentSeasonIndex < show.seasons.length - 1) {
+        nextSeason = show.seasons[currentSeasonIndex + 1];
+        nextEpisode = nextSeason.episodes[0];
+      }
     }
 
-    // Check if there's a next season
-    const currentSeasonIndex = show.seasons.findIndex(s => s.id === selectedSeason.id);
-    if (currentSeasonIndex < show.seasons.length - 1) {
-      const nextSeason = show.seasons[currentSeasonIndex + 1];
-      const firstEpisode = nextSeason.episodes[0];
-      
-      console.log('Setting next season:', nextSeason.number, firstEpisode.title);
-      setNextEpisodeInfo({ season: nextSeason, episode: firstEpisode });
-      setShowCountdown(true);
-      return;
+    if (nextEpisode) {
+      console.log('Playing next episode:', nextEpisode.title);
+      setSelectedSeason(nextSeason);
+      setSelectedEpisode(nextEpisode);
+      setInitialTime(0);
+      setShouldAutostart(true);
+    } else {
+      // Last episode of the show
+      toast({
+        title: "Series Complete",
+        description: "You've finished watching all episodes!",
+      });
     }
-
-    // Last episode of the show
-    toast({
-      title: "Series Complete",
-      description: "You've finished watching all episodes!",
-    });
   }, [selectedSeason, selectedEpisode, show, toast, autoplay]);
 
   if (!show) {
@@ -268,20 +245,6 @@ const TVShowPage = () => {
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleEpisodeEnded}
                 autostart={shouldAutostart}
-                countdownOverlay={
-                  showCountdown && nextEpisodeInfo ? (
-                    <CountdownOverlay
-                      seconds={5}
-                      nextEpisodeTitle={nextEpisodeInfo.episode.title}
-                      onComplete={playNextEpisode}
-                      onCancel={() => {
-                        console.log('Countdown cancelled');
-                        setShowCountdown(false);
-                        setNextEpisodeInfo(null);
-                      }}
-                    />
-                  ) : null
-                }
               />
             </div>
           )}

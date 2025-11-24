@@ -1,5 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useRef, useEffect } from 'react';
 import Plyr from 'plyr-react';
 import 'plyr-react/plyr.css';
 
@@ -10,30 +9,10 @@ interface VideoPlayerProps {
   onTimeUpdate?: (currentTime: number) => void;
   onEnded?: () => void;
   autostart?: boolean;
-  countdownOverlay?: React.ReactNode;
 }
 
-const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autostart = false, countdownOverlay }: VideoPlayerProps) => {
+const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autostart = false }: VideoPlayerProps) => {
   const playerRef = useRef<any>(null);
-  const [plyrContainer, setPlyrContainer] = useState<HTMLElement | null>(null);
-
-  // Find Plyr's container for portal rendering
-  useEffect(() => {
-    const findContainer = () => {
-      const container = playerRef.current?.plyr?.elements?.container;
-      if (container) {
-        setPlyrContainer(container);
-      }
-    };
-
-    const timer = setTimeout(findContainer, 100);
-    const timer2 = setTimeout(findContainer, 500);
-    
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(timer2);
-    };
-  }, [url]);
 
   useEffect(() => {
     if (initialTime <= 0) return;
@@ -283,7 +262,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
   }, [onTimeUpdate, onEnded]);
 
   return (
-    <div className="w-full rounded-lg overflow-hidden bg-black relative">
+    <div className="w-full rounded-lg overflow-hidden bg-black">
       <Plyr
         ref={playerRef}
         source={{
@@ -309,7 +288,6 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
           ],
         }}
       />
-      {plyrContainer && countdownOverlay && createPortal(countdownOverlay, plyrContainer)}
     </div>
   );
 };
