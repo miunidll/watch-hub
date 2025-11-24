@@ -75,6 +75,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     if (currentSource !== url) {
       // Check if we're in fullscreen before changing source
       const wasFullscreen = player.fullscreen?.active || false;
+      console.log('🔄 Changing video source. Was fullscreen:', wasFullscreen);
       
       player.source = {
         type: 'video',
@@ -90,18 +91,43 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       
       // Restore fullscreen after source change
       if (wasFullscreen) {
-        // Wait for the new video to be ready before entering fullscreen
         const enterFullscreen = () => {
-          if (player.fullscreen) {
-            player.fullscreen.enter();
-            console.log('🖥️ Restored fullscreen mode');
+          try {
+            if (player.fullscreen && !player.fullscreen.active) {
+              player.fullscreen.enter();
+              console.log('🖥️ Attempting to restore fullscreen');
+            }
+          } catch (e) {
+            console.log('Failed to enter fullscreen:', e);
           }
         };
         
-        // Try multiple times as the ready event timing can vary
-        player.once('ready', enterFullscreen);
+        // Use multiple event listeners to catch when video is ready
+        const readyHandler = () => {
+          console.log('Ready event fired, entering fullscreen');
+          enterFullscreen();
+        };
+        
+        const canplayHandler = () => {
+          console.log('Canplay event fired, entering fullscreen');
+          enterFullscreen();
+        };
+        
+        player.on('ready', readyHandler);
+        player.on('canplay', canplayHandler);
+        
+        // Also try with timeouts as fallback
         setTimeout(enterFullscreen, 100);
-        setTimeout(enterFullscreen, 300);
+        setTimeout(enterFullscreen, 500);
+        setTimeout(enterFullscreen, 1000);
+        
+        // Clean up listeners after a delay
+        setTimeout(() => {
+          try {
+            player.off('ready', readyHandler);
+            player.off('canplay', canplayHandler);
+          } catch (e) {}
+        }, 2000);
       }
     }
   }, [url, title]);
