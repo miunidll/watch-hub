@@ -71,17 +71,17 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
   useEffect(() => {
     if (!onTimeUpdate) return;
 
-    console.log('🔧 VideoPlayer effect running...');
+    console.log('🔧 VideoPlayer: Setting up event listeners');
 
     const timer = setTimeout(() => {
       const player = playerRef.current?.plyr;
       
       if (!player) {
-        console.log('❌ No player found!');
+        console.log('❌ No player found for event setup!');
         return;
       }
 
-      console.log('✅ Player found, setting up events...');
+      console.log('✅ Player found, attaching event listeners');
 
       let lastSaveTime = 0;
       const SAVE_INTERVAL = 3000; // Save at most every 3 seconds during playback
@@ -93,38 +93,41 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         // Debounce saves during playback
         if (currentTime && now - lastSaveTime >= SAVE_INTERVAL) {
           lastSaveTime = now;
+          console.log('📹 Timeupdate save at:', currentTime);
           onTimeUpdate(currentTime);
         }
       };
 
       const handlePause = () => {
-        console.log('⏸️ PAUSE EVENT FIRED!');
+        console.log('⏸️ PAUSE - saving immediately');
         const currentTime = player.currentTime;
-        console.log('⏸️ Current time on pause:', currentTime);
         if (currentTime) {
-          // Always save on pause, ignore debounce
           onTimeUpdate(currentTime);
         }
       };
 
       const handleEnded = () => {
-        console.log('🏁 ENDED EVENT FIRED!');
+        console.log('🏁 ENDED - saving final position');
         const currentTime = player.currentTime;
         if (currentTime) {
-          // Always save on end, ignore debounce
           onTimeUpdate(currentTime);
         }
       };
 
-      // Use Plyr's event system
+      // Remove any existing listeners first (cleanup)
+      player.off('timeupdate');
+      player.off('pause');
+      player.off('ended');
+
+      // Attach fresh listeners
       player.on('timeupdate', handleTimeUpdate);
       player.on('pause', handlePause);
       player.on('ended', handleEnded);
 
-      console.log('✅ All event listeners attached successfully');
+      console.log('✅ Event listeners attached');
 
       return () => {
-        console.log('🧹 Cleaning up event listeners');
+        console.log('🧹 Cleaning up VideoPlayer event listeners');
         player.off('timeupdate', handleTimeUpdate);
         player.off('pause', handlePause);
         player.off('ended', handleEnded);
