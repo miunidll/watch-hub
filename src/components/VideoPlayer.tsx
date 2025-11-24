@@ -8,9 +8,10 @@ interface VideoPlayerProps {
   initialTime?: number;
   onTimeUpdate?: (currentTime: number) => void;
   onEnded?: () => void;
+  autostart?: boolean;
 }
 
-const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded }: VideoPlayerProps) => {
+const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autostart = false }: VideoPlayerProps) => {
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -63,6 +64,43 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded }: Vid
       timeSet = true;
     };
   }, [initialTime]);
+
+  useEffect(() => {
+    if (!autostart) return;
+
+    const startPlayback = () => {
+      const player = playerRef.current?.plyr;
+      if (!player) return;
+
+      const attemptPlay = () => {
+        try {
+          player.play();
+        } catch (error) {
+          // Silently fail
+        }
+      };
+
+      const readyHandler = () => {
+        attemptPlay();
+        player.off('ready', readyHandler);
+      };
+
+      if (player.ready) {
+        attemptPlay();
+      } else {
+        player.on('ready', readyHandler);
+      }
+
+      setTimeout(attemptPlay, 100);
+      setTimeout(attemptPlay, 500);
+    };
+
+    const timer = setTimeout(startPlayback, 200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [autostart]);
 
   useEffect(() => {
     if (!onTimeUpdate) return;
