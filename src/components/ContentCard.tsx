@@ -32,8 +32,8 @@ const ContentCard = ({ content, animationDelay = 0 }: ContentCardProps) => {
     <a 
       href={`/${content.type}/${content.id}`}
       onClick={handleClick}
-      className="group block overflow-hidden rounded-lg bg-card transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] animate-fade-in cursor-pointer"
-      style={{ animationDelay: `${animationDelay}s` }} // apply animation delay here
+      className="group block overflow-hidden rounded-lg bg-card transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)] animate-fade-in cursor-pointer"
+      style={{ animationDelay: `${animationDelay}s` }}
     >
       <div className="relative aspect-[2/3] overflow-hidden">
         <img 
