@@ -28,16 +28,6 @@ const TVShowPage = () => {
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
   const [initialTime, setInitialTime] = useState(0);
 
-  // Reset shouldAutostart after player has had time to use it
-  useEffect(() => {
-    if (shouldAutostart) {
-      const timer = setTimeout(() => {
-        console.log('Resetting shouldAutostart to false');
-        setShouldAutostart(false);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [shouldAutostart]);
 
   useEffect(() => {
     const loadProgress = async () => {
