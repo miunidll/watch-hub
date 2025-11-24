@@ -15,21 +15,21 @@
           "id": "e1",
           "title": "Chapter One: The Vanishing of Will Byers",
           "number": 1,
-          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+          "videoUrl": "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
           "duration": "48m"
         },
         {
           "id": "e2",
           "title": "Chapter Two: The Weirdo on Maple Street",
           "number": 2,
-          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+          "videoUrl": "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
           "duration": "55m"
         },
         {
           "id": "e3",
           "title": "Chapter Three: Holly, Jolly",
           "number": 3,
-          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+          "videoUrl": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
           "duration": "51m"
         }
       ]
@@ -42,7 +42,7 @@
           "id": "e1",
           "title": "Chapter One: MADMAX",
           "number": 1,
-          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+          "videoUrl": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4",
           "duration": "48m"
         },
         {
