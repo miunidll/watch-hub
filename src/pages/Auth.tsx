@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,8 +13,15 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, signIn, signUp } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -25,13 +33,28 @@ const Auth = () => {
       return;
     }
 
-    toast({
-      title: "Demo Mode",
-      description: "Authentication requires backend integration. Enable Lovable Cloud to use real auth.",
-    });
-    
-    // Mock successful login
-    setTimeout(() => navigate('/'), 1500);
+    try {
+      if (isLogin) {
+        await signIn(email, password);
+        toast({
+          title: "Success",
+          description: "Signed in successfully!",
+        });
+      } else {
+        await signUp(email, password);
+        toast({
+          title: "Success",
+          description: "Account created successfully!",
+        });
+      }
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Authentication failed",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
