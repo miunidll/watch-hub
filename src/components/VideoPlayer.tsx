@@ -75,20 +75,31 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       if (executed) return;
       
       const player = playerRef.current?.plyr;
-      if (!player) return;
+      if (!player) {
+        console.log('Player not ready for autostart');
+        return;
+      }
 
       const attemptPlay = () => {
         if (executed) return;
         executed = true;
         try {
-          player.play();
-          console.log('Autoplay started successfully');
+          console.log('Attempting to play...');
+          const promise = player.play();
+          if (promise !== undefined) {
+            promise
+              .then(() => console.log('Autoplay started successfully'))
+              .catch((error) => console.log('Autoplay failed:', error));
+          } else {
+            console.log('Play initiated (no promise)');
+          }
         } catch (error) {
-          console.log('Autoplay failed:', error);
+          console.log('Autoplay error:', error);
         }
       };
 
       const readyHandler = () => {
+        console.log('Player ready event fired');
         attemptPlay();
         try {
           player.off('ready', readyHandler);
@@ -96,8 +107,10 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       };
 
       if (player.ready) {
+        console.log('Player already ready, playing immediately');
         attemptPlay();
       } else {
+        console.log('Waiting for player ready event');
         try {
           player.on('ready', readyHandler);
         } catch (e) {
@@ -105,11 +118,23 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
         }
       }
 
-      setTimeout(attemptPlay, 100);
-      setTimeout(attemptPlay, 500);
+      // Fallback attempts
+      setTimeout(() => {
+        if (!executed) {
+          console.log('Fallback play attempt 1');
+          attemptPlay();
+        }
+      }, 300);
+      
+      setTimeout(() => {
+        if (!executed) {
+          console.log('Fallback play attempt 2');
+          attemptPlay();
+        }
+      }, 800);
     };
 
-    const timer = setTimeout(startPlayback, 200);
+    const timer = setTimeout(startPlayback, 100);
 
     return () => {
       clearTimeout(timer);
