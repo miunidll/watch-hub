@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { getWatchProgress } from '@/services/watchProgress';
 import { watchProgressQueue } from '@/services/watchProgressQueue';
+import { getUserSettings, saveUserSettings } from '@/services/userSettings';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -43,17 +44,26 @@ const TVShowPage = () => {
 
 
 
+  // Load user settings (autoplay preference) on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!user) return;
+      
+      const settings = await getUserSettings(user.uid);
+      if (settings && settings.autoplay !== undefined) {
+        setAutoplay(settings.autoplay);
+      }
+    };
+    
+    loadSettings();
+  }, [user]);
+
   useEffect(() => {
     const loadProgress = async () => {
       if (user && id && selectedSeason && selectedEpisode && !shouldAutostart) {
         const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
         if (progress && progress.episodeId === selectedEpisode.id) {
           setInitialTime(progress.timestamp);
-          
-          // Restore autoplay preference
-          if (progress.autoplay !== undefined) {
-            setAutoplay(progress.autoplay);
-          }
         } else {
           setInitialTime(0);
         }
@@ -71,7 +81,6 @@ const TVShowPage = () => {
         seasonId: selectedSeason.id,
         episodeId: selectedEpisode.id,
         updatedAt: Date.now(),
-        autoplay: autoplayRef.current,
       });
     }
   }, [user, id, selectedSeason?.id, selectedEpisode?.id]);
@@ -265,6 +274,11 @@ const TVShowPage = () => {
                     onCheckedChange={(checked) => {
                       setAutoplay(checked);
                       console.log('Autoplay toggled:', checked);
+                      
+                      // Save to user settings
+                      if (user) {
+                        saveUserSettings(user.uid, { autoplay: checked });
+                      }
                     }}
                   />
                   <Label htmlFor="autoplay" className="cursor-pointer text-sm">
