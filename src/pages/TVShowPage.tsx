@@ -19,18 +19,27 @@ const TVShowPage = () => {
   const show = contentData.find(c => c.id === id && c.type === 'tv') as TVShow;
   const { user } = useAuth();
   const [autoplay, setAutoplay] = useState(true);
-  const autoplayRef = useRef(autoplay);
   const [shouldAutostart, setShouldAutostart] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
+  const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
+  const [initialTime, setInitialTime] = useState(0);
+
+  // Refs to keep stable callbacks
+  const autoplayRef = useRef(autoplay);
+  const selectedSeasonRef = useRef(selectedSeason);
+  const selectedEpisodeRef = useRef(selectedEpisode);
+  const showRef = useRef(show);
   
-  
-  // Keep ref in sync with state
+  // Keep refs in sync with state
   useEffect(() => {
     autoplayRef.current = autoplay;
   }, [autoplay]);
 
-  const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
-  const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
-  const [initialTime, setInitialTime] = useState(0);
+  useEffect(() => {
+    selectedSeasonRef.current = selectedSeason;
+    selectedEpisodeRef.current = selectedEpisode;
+    showRef.current = show;
+  }, [selectedSeason, selectedEpisode, show]);
 
 
   useEffect(() => {
@@ -61,25 +70,37 @@ const TVShowPage = () => {
   }, [user, id, selectedSeason?.id, selectedEpisode?.id]);
 
   const handleEpisodeEnded = useCallback(() => {
-    console.log('handleEpisodeEnded called!', { autoplay: autoplayRef.current, selectedSeason: selectedSeason?.id, selectedEpisode: selectedEpisode?.id });
-    if (!selectedSeason || !selectedEpisode || !show || !autoplayRef.current) return;
+    const currentAutoplay = autoplayRef.current;
+    const currentSeason = selectedSeasonRef.current;
+    const currentEpisode = selectedEpisodeRef.current;
+    const currentShow = showRef.current;
+    
+    console.log('handleEpisodeEnded called!', { autoplay: currentAutoplay, selectedSeason: currentSeason?.id, selectedEpisode: currentEpisode?.id });
+    
+    // Check autoplay setting - if disabled, just return without doing anything
+    if (!currentAutoplay) {
+      console.log('Autoplay is disabled, not playing next episode');
+      return;
+    }
+    
+    if (!currentSeason || !currentEpisode || !currentShow) return;
 
     // Find current episode index
-    const currentEpisodeIndex = selectedSeason.episodes.findIndex(
-      ep => ep.id === selectedEpisode.id
+    const currentEpisodeIndex = currentSeason.episodes.findIndex(
+      ep => ep.id === currentEpisode.id
     );
 
-    let nextSeason = selectedSeason;
+    let nextSeason = currentSeason;
     let nextEpisode = null;
 
     // Check if there's a next episode in the current season
-    if (currentEpisodeIndex < selectedSeason.episodes.length - 1) {
-      nextEpisode = selectedSeason.episodes[currentEpisodeIndex + 1];
+    if (currentEpisodeIndex < currentSeason.episodes.length - 1) {
+      nextEpisode = currentSeason.episodes[currentEpisodeIndex + 1];
     } else {
       // Check if there's a next season
-      const currentSeasonIndex = show.seasons.findIndex(s => s.id === selectedSeason.id);
-      if (currentSeasonIndex < show.seasons.length - 1) {
-        nextSeason = show.seasons[currentSeasonIndex + 1];
+      const currentSeasonIndex = currentShow.seasons.findIndex(s => s.id === currentSeason.id);
+      if (currentSeasonIndex < currentShow.seasons.length - 1) {
+        nextSeason = currentShow.seasons[currentSeasonIndex + 1];
         nextEpisode = nextSeason.episodes[0];
       }
     }
@@ -97,7 +118,7 @@ const TVShowPage = () => {
         description: "You've finished watching all episodes!",
       });
     }
-  }, [selectedSeason, selectedEpisode, show, toast]);
+  }, [toast]);
 
   if (!show) {
     return (
