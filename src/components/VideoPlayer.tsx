@@ -68,15 +68,22 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
   useEffect(() => {
     if (!autostart) return;
 
+    let autostartExecuted = false;
+
     const startPlayback = () => {
+      if (autostartExecuted) return;
+      
       const player = playerRef.current?.plyr;
       if (!player) return;
 
       const attemptPlay = () => {
+        if (autostartExecuted) return;
         try {
           player.play();
+          autostartExecuted = true;
+          console.log('Autoplay started successfully');
         } catch (error) {
-          // Silently fail
+          console.log('Autoplay failed:', error);
         }
       };
 
@@ -99,6 +106,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
 
     return () => {
       clearTimeout(timer);
+      autostartExecuted = true;
     };
   }, [autostart]);
 
