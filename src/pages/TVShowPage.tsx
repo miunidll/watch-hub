@@ -323,8 +323,7 @@ const TVShowPage = () => {
                 </div>
               </div>
               <VideoPlayer
-                key={`${selectedSeason.id}-${selectedEpisode.id}`}
-                url={selectedEpisode.videoUrl} 
+                url={selectedEpisode.videoUrl}
                 title={selectedEpisode.title}
                 initialTime={initialTime}
                 onTimeUpdate={handleTimeUpdate}
