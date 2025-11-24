@@ -16,6 +16,10 @@ const Auth = () => {
   const { user, signIn, signUp } = useAuth();
 
   useEffect(() => {
+    document.title = isLogin ? 'Sign In' : 'Sign Up';
+  }, [isLogin]);
+
+  useEffect(() => {
     if (user) {
       navigate('/');
     }
