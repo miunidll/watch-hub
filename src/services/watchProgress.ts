@@ -20,14 +20,19 @@ export const saveWatchProgress = async (
       ? `${userId}_${progress.contentId}_${progress.episodeId}`
       : `${userId}_${progress.contentId}`;
     
+    console.log('🔄 Firestore save:', { docId, timestamp: progress.timestamp });
+    
     const progressRef = doc(db, 'watchProgress', docId);
     await setDoc(progressRef, {
       ...progress,
       userId,
       updatedAt: Date.now(),
     });
+    
+    console.log('✅ Firestore saved successfully');
     return { success: true };
   } catch (error) {
+    console.error('❌ Firestore error:', error);
     return { success: false, error };
   }
 };
