@@ -37,6 +37,14 @@ const TVShowPage = () => {
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
+      console.log('⏱️ TVShowPage: handleTimeUpdate called', { 
+        userId: user.uid, 
+        contentId: id,
+        seasonId: selectedSeason.id,
+        episodeId: selectedEpisode.id,
+        currentTime 
+      });
+      
       saveWatchProgress(user.uid, {
         contentId: id,
         contentType: 'tv',
@@ -44,6 +52,13 @@ const TVShowPage = () => {
         seasonId: selectedSeason.id,
         episodeId: selectedEpisode.id,
         updatedAt: Date.now(),
+      });
+    } else {
+      console.warn('⚠️ TVShowPage: Cannot save progress - missing required data', { 
+        hasUser: !!user, 
+        hasId: !!id,
+        hasSeason: !!selectedSeason,
+        hasEpisode: !!selectedEpisode
       });
     }
   }, [user, id, selectedSeason, selectedEpisode]);
