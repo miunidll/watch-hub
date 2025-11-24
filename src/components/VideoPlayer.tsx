@@ -33,7 +33,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       return;
     }
 
-    console.log('✅ VideoPlayer: Player instance found, setting up listener');
+    console.log('✅ VideoPlayer: Player instance found');
 
     const handleTimeUpdate = () => {
       const currentTime = player.currentTime;
@@ -44,41 +44,22 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       }
     };
 
-    // Wait for player to be ready before attaching listener
-    const setupListener = () => {
-      const mediaElement = player.media;
-      console.log('🔍 VideoPlayer: Setting up listener', { hasMediaElement: !!mediaElement });
+    // Try to get the media element and attach listener
+    const mediaElement = player.media;
+    console.log('🔍 VideoPlayer: Checking for media element', { hasMediaElement: !!mediaElement });
+    
+    if (mediaElement) {
+      console.log('✅ VideoPlayer: Attaching timeupdate listener to media element');
+      mediaElement.addEventListener('timeupdate', handleTimeUpdate);
       
-      if (mediaElement) {
-        console.log('✅ VideoPlayer: Attaching timeupdate listener to media element');
-        mediaElement.addEventListener('timeupdate', handleTimeUpdate);
-        
-        return () => {
-          console.log('🧹 VideoPlayer: Cleaning up timeupdate listener');
-          mediaElement.removeEventListener('timeupdate', handleTimeUpdate);
-        };
-      } else {
-        console.error('❌ VideoPlayer: Media element not found!');
-      }
-    };
-
-    // If player is already ready, setup immediately
-    if (player.ready) {
-      console.log('✅ VideoPlayer: Player already ready, setting up listener now');
-      return setupListener();
+      return () => {
+        console.log('🧹 VideoPlayer: Cleaning up timeupdate listener');
+        mediaElement.removeEventListener('timeupdate', handleTimeUpdate);
+      };
+    } else {
+      console.error('❌ VideoPlayer: Media element not found - listener not attached');
     }
-
-    // Otherwise wait for ready event
-    console.log('⏳ VideoPlayer: Waiting for player ready event');
-    player.on('ready', () => {
-      console.log('✅ VideoPlayer: Player ready event fired');
-      setupListener();
-    });
-
-    return () => {
-      console.log('🧹 VideoPlayer: Cleaning up ready event listener');
-    };
-  }, [onTimeUpdate]);
+  }, [onTimeUpdate, playerRef.current?.plyr]);
 
   return (
     <div className="w-full rounded-lg overflow-hidden bg-black">
