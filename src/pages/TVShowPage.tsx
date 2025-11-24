@@ -6,7 +6,8 @@ import VideoPlayer from '@/components/VideoPlayer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
-import { saveWatchProgress, getWatchProgress } from '@/services/watchProgress';
+import { getWatchProgress } from '@/services/watchProgress';
+import { watchProgressQueue } from '@/services/watchProgressQueue';
 
 const TVShowPage = () => {
   const { id } = useParams();
@@ -31,22 +32,20 @@ const TVShowPage = () => {
     loadProgress();
   }, [user, id, selectedSeason, selectedEpisode]);
 
-  const handleTimeUpdate = useCallback(async (currentTime: number) => {
+  const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
-      const docId = `${user.uid}_${id}_${selectedSeason.id}_${selectedEpisode.id}`;
-      
       const saveInfo = {
         seasonId: selectedSeason.id,
         episodeId: selectedEpisode.id,
         seasonNumber: selectedSeason.number,
         episodeNumber: selectedEpisode.number,
-        currentTime,
-        docId
+        currentTime
       };
       
-      console.log('💾 Attempting to save TV progress:', saveInfo);
+      console.log('💾 Queueing save for:', saveInfo);
       
-      const result = await saveWatchProgress(user.uid, {
+      // Use the queue system for reliable saves
+      watchProgressQueue.enqueue(user.uid, {
         contentId: id,
         contentType: 'tv',
         timestamp: currentTime,
@@ -54,12 +53,6 @@ const TVShowPage = () => {
         episodeId: selectedEpisode.id,
         updatedAt: Date.now(),
       });
-      
-      if (result.success) {
-        console.log('✅ TV progress saved successfully for', saveInfo);
-      } else {
-        console.error('❌ Failed to save TV progress:', saveInfo, result.error);
-      }
     } else {
       console.warn('⚠️ Missing data for save:', {
         hasUser: !!user,

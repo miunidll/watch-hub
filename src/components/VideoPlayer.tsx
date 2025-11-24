@@ -58,8 +58,6 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
 
     const timer = setTimeout(() => {
       const player = playerRef.current?.plyr;
-      console.log('🎮 Player ref:', playerRef.current);
-      console.log('🎮 Plyr instance:', player);
       
       if (!player) {
         console.log('❌ No player found!');
@@ -67,11 +65,17 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       }
 
       console.log('✅ Player found, setting up events...');
-      console.log('🎮 Player has .on method?', typeof player.on === 'function');
+
+      let lastSaveTime = 0;
+      const SAVE_INTERVAL = 3000; // Save at most every 3 seconds during playback
 
       const handleTimeUpdate = () => {
         const currentTime = player.currentTime;
-        if (currentTime) {
+        const now = Date.now();
+        
+        // Debounce saves during playback
+        if (currentTime && now - lastSaveTime >= SAVE_INTERVAL) {
+          lastSaveTime = now;
           onTimeUpdate(currentTime);
         }
       };
@@ -81,6 +85,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         const currentTime = player.currentTime;
         console.log('⏸️ Current time on pause:', currentTime);
         if (currentTime) {
+          // Always save on pause, ignore debounce
           onTimeUpdate(currentTime);
         }
       };
@@ -89,6 +94,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         console.log('🏁 ENDED EVENT FIRED!');
         const currentTime = player.currentTime;
         if (currentTime) {
+          // Always save on end, ignore debounce
           onTimeUpdate(currentTime);
         }
       };
