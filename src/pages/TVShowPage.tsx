@@ -58,7 +58,7 @@ const TVShowPage = () => {
         updatedAt: Date.now(),
       });
     }
-  }, [user, id, selectedSeason, selectedEpisode]);
+  }, [user, id, selectedSeason?.id, selectedEpisode?.id]);
 
   const handleEpisodeEnded = useCallback(() => {
     console.log('handleEpisodeEnded called!', { autoplay: autoplayRef.current, selectedSeason: selectedSeason?.id, selectedEpisode: selectedEpisode?.id });
