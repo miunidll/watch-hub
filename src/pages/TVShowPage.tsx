@@ -34,18 +34,6 @@ const TVShowPage = () => {
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
-      const saveInfo = {
-        contentId: id,
-        seasonId: selectedSeason.id,
-        episodeId: selectedEpisode.id,
-        seasonNumber: selectedSeason.number,
-        episodeNumber: selectedEpisode.number,
-        currentTime
-      };
-      
-      console.log(`💾 Queueing save S${saveInfo.seasonNumber}E${saveInfo.episodeNumber} at ${currentTime.toFixed(2)}s`);
-      
-      // Use the queue system for reliable saves
       watchProgressQueue.enqueue(user.uid, {
         contentId: id,
         contentType: 'tv',
@@ -53,13 +41,6 @@ const TVShowPage = () => {
         seasonId: selectedSeason.id,
         episodeId: selectedEpisode.id,
         updatedAt: Date.now(),
-      });
-    } else {
-      console.warn('⚠️ Cannot save - missing data:', {
-        hasUser: !!user,
-        hasId: !!id,
-        season: selectedSeason?.number,
-        episode: selectedEpisode?.number
       });
     }
   }, [user, id, selectedSeason, selectedEpisode]);
