@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Play } from 'lucide-react';
 import { Content } from '@/data/content';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 interface ContentCardProps {
   content: Content;
@@ -8,10 +10,29 @@ interface ContentCardProps {
 }
 
 const ContentCard = ({ content, animationDelay = 0 }: ContentCardProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "You need to be signed in to watch content. Please sign in or create an account.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    navigate(`/${content.type}/${content.id}`);
+  };
+
   return (
-    <Link 
-      to={`/${content.type}/${content.id}`}
-      className="group block overflow-hidden rounded-lg bg-card transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] animate-fade-in"
+    <a 
+      href={`/${content.type}/${content.id}`}
+      onClick={handleClick}
+      className="group block overflow-hidden rounded-lg bg-card transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)] animate-fade-in cursor-pointer"
       style={{ animationDelay: `${animationDelay}s` }} // apply animation delay here
     >
       <div className="relative aspect-[2/3] overflow-hidden">
@@ -32,7 +53,7 @@ const ContentCard = ({ content, animationDelay = 0 }: ContentCardProps) => {
           </div>
         </div>
       </div>
-    </Link>
+    </a>
   );
 };
 
