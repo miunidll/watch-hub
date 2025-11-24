@@ -13,18 +13,26 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
+    if (initialTime <= 0) return;
+
     const timer = setTimeout(() => {
       const player = playerRef.current?.plyr;
-      if (player && initialTime > 0) {
-        if (typeof player.on === 'function') {
-          player.on('ready', () => {
-            player.currentTime = initialTime;
-          });
-        } else if (player.media) {
-          player.media.currentTime = initialTime;
-        }
+      if (!player) return;
+
+      const setTime = () => {
+        player.currentTime = initialTime;
+      };
+
+      // If player is ready, set time immediately
+      if (player.ready) {
+        setTime();
+      } else if (typeof player.on === 'function') {
+        // Otherwise wait for ready event
+        player.once('ready', setTime);
+        // Also try on loadeddata as a fallback
+        player.once('loadeddata', setTime);
       }
-    }, 100);
+    }, 150);
 
     return () => clearTimeout(timer);
   }, [initialTime, url]);
