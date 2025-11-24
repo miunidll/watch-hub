@@ -34,12 +34,17 @@ const TVShowPage = () => {
   const handleTimeUpdate = useCallback(async (currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
       const docId = `${user.uid}_${id}_${selectedSeason.id}_${selectedEpisode.id}`;
-      console.log('💾 Saving TV progress:', { 
+      
+      const saveInfo = {
         seasonId: selectedSeason.id,
-        episodeId: selectedEpisode.id, 
+        episodeId: selectedEpisode.id,
+        seasonNumber: selectedSeason.number,
+        episodeNumber: selectedEpisode.number,
         currentTime,
         docId
-      });
+      };
+      
+      console.log('💾 Attempting to save TV progress:', saveInfo);
       
       const result = await saveWatchProgress(user.uid, {
         contentId: id,
@@ -51,9 +56,9 @@ const TVShowPage = () => {
       });
       
       if (result.success) {
-        console.log('✅ TV progress saved successfully');
+        console.log('✅ TV progress saved successfully for', saveInfo);
       } else {
-        console.error('❌ Failed to save TV progress:', result.error);
+        console.error('❌ Failed to save TV progress:', saveInfo, result.error);
       }
     } else {
       console.warn('⚠️ Missing data for save:', {
