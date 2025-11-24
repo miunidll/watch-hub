@@ -114,11 +114,17 @@ const TVShowPage = () => {
             <div className="flex gap-4 w-full sm:w-auto">
               <Select 
                 value={selectedSeason?.id} 
-                onValueChange={(value) => {
+                onValueChange={async (value) => {
                   const season = show.seasons.find(s => s.id === value);
                   if (season) {
                     setSelectedSeason(season);
                     setSelectedEpisode(season.episodes[0]);
+                    
+                    // Load progress for the first episode of the new season
+                    if (user && id) {
+                      const progress = await getWatchProgress(user.uid, id, season.episodes[0].id);
+                      setInitialTime(progress?.timestamp || 0);
+                    }
                   }
                 }}
               >
@@ -136,9 +142,17 @@ const TVShowPage = () => {
 
               <Select 
                 value={selectedEpisode?.id} 
-                onValueChange={(value) => {
+                onValueChange={async (value) => {
                   const episode = selectedSeason?.episodes.find(e => e.id === value);
-                  if (episode) setSelectedEpisode(episode);
+                  if (episode) {
+                    setSelectedEpisode(episode);
+                    
+                    // Load progress for the newly selected episode
+                    if (user && id) {
+                      const progress = await getWatchProgress(user.uid, id, episode.id);
+                      setInitialTime(progress?.timestamp || 0);
+                    }
+                  }
                 }}
               >
                 <SelectTrigger className="w-full sm:w-[180px]">
