@@ -49,12 +49,20 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         }
       };
 
+      const handlePause = () => {
+        console.log('🎬 Video paused, saving progress...');
+        const currentTime = player.currentTime;
+        if (currentTime) {
+          onTimeUpdate(currentTime);
+        }
+      };
+
       if (typeof player.on === 'function') {
         player.on('ready', () => {
           const mediaElement = player.media;
           if (mediaElement) {
             mediaElement.addEventListener('timeupdate', handleTimeUpdate);
-            mediaElement.addEventListener('pause', handleTimeUpdate);
+            mediaElement.addEventListener('pause', handlePause);
             mediaElement.addEventListener('ended', handleTimeUpdate);
           }
         });
@@ -64,7 +72,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         });
         
         player.on('pause', () => {
-          handleTimeUpdate();
+          handlePause();
         });
         
         player.on('ended', () => {
@@ -74,7 +82,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         const mediaElement = player.media;
         if (mediaElement) {
           mediaElement.addEventListener('timeupdate', handleTimeUpdate);
-          mediaElement.addEventListener('pause', handleTimeUpdate);
+          mediaElement.addEventListener('pause', handlePause);
           mediaElement.addEventListener('ended', handleTimeUpdate);
         }
       }
