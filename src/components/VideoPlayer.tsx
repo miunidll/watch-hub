@@ -23,19 +23,17 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         player.currentTime = initialTime;
       };
 
-      // If player is ready, set time immediately
+      // Try multiple approaches to ensure timestamp is set
       if (player.ready) {
         setTime();
       } else if (typeof player.on === 'function') {
-        // Otherwise wait for ready event
-        player.once('ready', setTime);
-        // Also try on loadeddata as a fallback
-        player.once('loadeddata', setTime);
+        player.once('loadedmetadata', setTime);
+        player.once('canplay', setTime);
       }
-    }, 150);
+    }, 200);
 
     return () => clearTimeout(timer);
-  }, [initialTime, url]);
+  }, [initialTime]);
 
   useEffect(() => {
     if (!onTimeUpdate) return;
