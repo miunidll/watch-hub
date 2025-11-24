@@ -40,6 +40,12 @@ const TVShowPage = () => {
   }, [autoplay]);
 
   useEffect(() => {
+    if (show) {
+      document.title = `${show.title} - MiuNet`;
+    }
+  }, [show]);
+
+  useEffect(() => {
     selectedSeasonRef.current = selectedSeason;
     selectedEpisodeRef.current = selectedEpisode;
     showRef.current = show;

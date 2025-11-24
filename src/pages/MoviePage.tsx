@@ -15,6 +15,12 @@ const MoviePage = () => {
   const [initialTime, setInitialTime] = useState(0);
 
   useEffect(() => {
+    if (movie) {
+      document.title = `${movie.title} - MiuNet`;
+    }
+  }, [movie]);
+
+  useEffect(() => {
     const loadProgress = async () => {
       if (user && id) {
         const progress = await getWatchProgress(user.uid, id);
