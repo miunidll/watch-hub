@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { contentData, TVShow } from '@/data/content';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -8,9 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { getWatchProgress } from '@/services/watchProgress';
 import { watchProgressQueue } from '@/services/watchProgressQueue';
+import { useToast } from '@/hooks/use-toast';
 
 const TVShowPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const show = contentData.find(c => c.id === id && c.type === 'tv') as TVShow;
   const { user } = useAuth();
   
@@ -44,6 +47,51 @@ const TVShowPage = () => {
       });
     }
   }, [user, id, selectedSeason, selectedEpisode]);
+
+  const handleEpisodeEnded = useCallback(() => {
+    if (!selectedSeason || !selectedEpisode || !show) return;
+
+    // Find current episode index
+    const currentEpisodeIndex = selectedSeason.episodes.findIndex(
+      ep => ep.id === selectedEpisode.id
+    );
+
+    // Check if there's a next episode in the current season
+    if (currentEpisodeIndex < selectedSeason.episodes.length - 1) {
+      const nextEpisode = selectedSeason.episodes[currentEpisodeIndex + 1];
+      setSelectedEpisode(nextEpisode);
+      setInitialTime(0);
+      
+      toast({
+        title: "Next Episode",
+        description: `Now playing: ${nextEpisode.title}`,
+      });
+      return;
+    }
+
+    // Check if there's a next season
+    const currentSeasonIndex = show.seasons.findIndex(s => s.id === selectedSeason.id);
+    if (currentSeasonIndex < show.seasons.length - 1) {
+      const nextSeason = show.seasons[currentSeasonIndex + 1];
+      const firstEpisode = nextSeason.episodes[0];
+      
+      setSelectedSeason(nextSeason);
+      setSelectedEpisode(firstEpisode);
+      setInitialTime(0);
+      
+      toast({
+        title: "Next Season",
+        description: `Season ${nextSeason.number}, Episode 1: ${firstEpisode.title}`,
+      });
+      return;
+    }
+
+    // Last episode of the show
+    toast({
+      title: "Series Complete",
+      description: "You've finished watching all episodes!",
+    });
+  }, [selectedSeason, selectedEpisode, show, toast]);
 
   if (!show) {
     return (
@@ -177,10 +225,11 @@ const TVShowPage = () => {
               </h3>
               <VideoPlayer 
                 key={`${id}-${selectedSeason.id}-${selectedEpisode.id}`}
-                url={selectedEpisode.videoUrl}
+                url={selectedEpisode.videoUrl} 
                 title={selectedEpisode.title}
                 initialTime={initialTime}
                 onTimeUpdate={handleTimeUpdate}
+                onEnded={handleEpisodeEnded}
               />
             </div>
           )}
