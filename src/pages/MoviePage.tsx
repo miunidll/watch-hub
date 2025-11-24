@@ -5,7 +5,8 @@ import { contentData, Movie } from '@/data/content';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { saveWatchProgress, getWatchProgress } from '@/services/watchProgress';
+import { getWatchProgress } from '@/services/watchProgress';
+import { watchProgressQueue } from '@/services/watchProgressQueue';
 
 const MoviePage = () => {
   const { id } = useParams();
@@ -27,7 +28,7 @@ const MoviePage = () => {
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id) {
-      saveWatchProgress(user.uid, {
+      watchProgressQueue.enqueue(user.uid, {
         contentId: id,
         contentType: 'movie',
         timestamp: currentTime,

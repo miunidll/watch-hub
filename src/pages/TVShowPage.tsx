@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getWatchProgress } from '@/services/watchProgress';
 import { watchProgressQueue } from '@/services/watchProgressQueue';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const TVShowPage = () => {
   const { id } = useParams();
@@ -16,6 +18,7 @@ const TVShowPage = () => {
   const { toast } = useToast();
   const show = contentData.find(c => c.id === id && c.type === 'tv') as TVShow;
   const { user } = useAuth();
+  const [autoplay, setAutoplay] = useState(true);
   
   const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
@@ -49,7 +52,7 @@ const TVShowPage = () => {
   }, [user, id, selectedSeason, selectedEpisode]);
 
   const handleEpisodeEnded = useCallback(() => {
-    if (!selectedSeason || !selectedEpisode || !show) return;
+    if (!selectedSeason || !selectedEpisode || !show || !autoplay) return;
 
     // Find current episode index
     const currentEpisodeIndex = selectedSeason.episodes.findIndex(
@@ -91,7 +94,7 @@ const TVShowPage = () => {
       title: "Series Complete",
       description: "You've finished watching all episodes!",
     });
-  }, [selectedSeason, selectedEpisode, show, toast]);
+  }, [selectedSeason, selectedEpisode, show, toast, autoplay]);
 
   if (!show) {
     return (
@@ -219,11 +222,23 @@ const TVShowPage = () => {
           </div>
 
           {selectedEpisode && (
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">
-                {selectedEpisode.title} <span className="text-muted-foreground">({selectedEpisode.duration})</span>
-              </h3>
-              <VideoPlayer 
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">
+                  {selectedEpisode.title} <span className="text-muted-foreground">({selectedEpisode.duration})</span>
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="autoplay"
+                    checked={autoplay}
+                    onCheckedChange={setAutoplay}
+                  />
+                  <Label htmlFor="autoplay" className="cursor-pointer text-sm">
+                    Autoplay
+                  </Label>
+                </div>
+              </div>
+              <VideoPlayer
                 key={`${id}-${selectedSeason.id}-${selectedEpisode.id}`}
                 url={selectedEpisode.videoUrl} 
                 title={selectedEpisode.title}

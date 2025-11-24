@@ -44,13 +44,15 @@ class WatchProgressQueue {
     const itemsToProcess = Array.from(this.queue.entries());
 
     for (const [key, item] of itemsToProcess) {
-      const episodeInfo = `S${item.progress.seasonId}-E${item.progress.episodeId}`;
+      const contentInfo = item.progress.seasonId && item.progress.episodeId
+        ? `S${item.progress.seasonId}-E${item.progress.episodeId}`
+        : item.progress.contentId;
       
       try {
         const result = await saveWatchProgress(item.userId, item.progress);
         
         if (result.success) {
-          console.log(`✅ [QUEUE] Successfully saved ${episodeInfo}`);
+          console.log(`✅ [QUEUE] Successfully saved ${contentInfo}`);
           this.queue.delete(key);
         } else {
           throw new Error('Save failed: ' + (result.error?.message || 'Unknown error'));
