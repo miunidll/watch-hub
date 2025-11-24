@@ -16,6 +16,10 @@ const Auth = () => {
   const { user, signIn, signUp } = useAuth();
 
   useEffect(() => {
+    document.title = isLogin ? 'Sign In - MiuNet' : 'Sign Up - MiuNet';
+  }, [isLogin]);
+
+  useEffect(() => {
     if (user) {
       navigate('/');
     }
