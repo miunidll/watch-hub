@@ -70,22 +70,39 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
 
   // Monitor fullscreen changes and store in ref
   useEffect(() => {
-    const player = playerRef.current?.plyr;
-    if (!player) return;
+    const attachFullscreenListeners = () => {
+      const player = playerRef.current?.plyr;
+      if (!player || typeof player.on !== 'function') return;
 
-    const handleFullscreenChange = () => {
-      const isFullscreen = player.fullscreen?.active || false;
-      wasFullscreenRef.current = isFullscreen;
+      const handleFullscreenChange = () => {
+        const isFullscreen = player.fullscreen?.active || false;
+        wasFullscreenRef.current = isFullscreen;
+      };
+
+      player.on('enterfullscreen', handleFullscreenChange);
+      player.on('exitfullscreen', handleFullscreenChange);
+
+      return () => {
+        try {
+          if (typeof player.off === 'function') {
+            player.off('enterfullscreen', handleFullscreenChange);
+            player.off('exitfullscreen', handleFullscreenChange);
+          }
+        } catch (e) {}
+      };
     };
 
-    player.on('enterfullscreen', handleFullscreenChange);
-    player.on('exitfullscreen', handleFullscreenChange);
+    // Try to attach immediately
+    const cleanup = attachFullscreenListeners();
+    
+    // Also try after delays to catch when player becomes ready
+    const timer1 = setTimeout(attachFullscreenListeners, 100);
+    const timer2 = setTimeout(attachFullscreenListeners, 500);
 
     return () => {
-      try {
-        player.off('enterfullscreen', handleFullscreenChange);
-        player.off('exitfullscreen', handleFullscreenChange);
-      } catch (e) {}
+      if (cleanup) cleanup();
+      clearTimeout(timer1);
+      clearTimeout(timer2);
     };
   }, []);
 
