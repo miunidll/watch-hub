@@ -76,6 +76,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
 
       const handleFullscreenChange = () => {
         const isFullscreen = player.fullscreen?.active || false;
+        console.log('🎬 Fullscreen state changed to:', isFullscreen);
         wasFullscreenRef.current = isFullscreen;
       };
 
@@ -116,7 +117,9 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     if (currentSource !== url) {
       const shouldRestoreFullscreen = wasFullscreenRef.current;
       
-      console.log('🔄 Changing video source. Was fullscreen:', shouldRestoreFullscreen);
+      console.log('🔄 Changing video source from:', currentSource);
+      console.log('🔄 Changing video source to:', url);
+      console.log('🔄 Was fullscreen (from ref):', shouldRestoreFullscreen);
       
       player.source = {
         type: 'video',
@@ -131,10 +134,14 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       
       // Restore fullscreen if it was active
       if (shouldRestoreFullscreen) {
+        console.log('✅ Will attempt to restore fullscreen');
         const restoreFullscreen = () => {
+          console.log('🔍 Checking fullscreen state. Active:', player.fullscreen?.active);
           if (player.fullscreen && !player.fullscreen.active) {
-            console.log('📺 Restoring fullscreen');
+            console.log('📺 Calling player.fullscreen.enter()');
             player.fullscreen.enter();
+          } else {
+            console.log('⚠️ Fullscreen already active or not available');
           }
         };
         
