@@ -17,38 +17,55 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
 
     console.log('⏱️ Setting initial time to:', initialTime);
 
+    let timeSet = false;
+
     const setInitialTimestamp = () => {
       const player = playerRef.current?.plyr;
-      if (!player) {
-        console.log('❌ No player available for initial time');
-        return;
-      }
+      if (!player || timeSet) return;
 
       const setTime = () => {
+        if (timeSet) return;
+        
         try {
           player.currentTime = initialTime;
+          timeSet = true;
           console.log('✅ Initial time set to:', initialTime);
         } catch (error) {
           console.error('❌ Error setting initial time:', error);
         }
       };
 
-      // Multiple attempts to ensure the time is set
-      const attempts = [
-        () => player.on('ready', setTime),
-        () => player.on('loadedmetadata', setTime),
-        () => player.on('canplay', setTime),
-        () => setTimeout(setTime, 500),
-        () => setTimeout(setTime, 1000),
-        () => setTimeout(setTime, 2000)
-      ];
+      // Try setting time on these events (only once each)
+      const readyHandler = () => {
+        setTime();
+        player.off('ready', readyHandler);
+      };
+      
+      const metadataHandler = () => {
+        setTime();
+        player.off('loadedmetadata', metadataHandler);
+      };
+      
+      const canplayHandler = () => {
+        setTime();
+        player.off('canplay', canplayHandler);
+      };
 
-      attempts.forEach(attempt => attempt());
+      player.on('ready', readyHandler);
+      player.on('loadedmetadata', metadataHandler);
+      player.on('canplay', canplayHandler);
+
+      // Fallback timeouts
+      setTimeout(setTime, 500);
+      setTimeout(setTime, 1500);
     };
 
     const timer = setTimeout(setInitialTimestamp, 100);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      timeSet = true; // Prevent any pending callbacks
+    };
   }, [initialTime]);
 
   useEffect(() => {
