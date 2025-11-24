@@ -11,9 +11,11 @@ interface CountdownOverlayProps {
 
 const CountdownOverlay = ({ seconds, nextEpisodeTitle, onComplete, onCancel }: CountdownOverlayProps) => {
   const [timeLeft, setTimeLeft] = useState(seconds);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     if (timeLeft <= 0) {
+      setIsVisible(false);
       onComplete();
       return;
     }
@@ -24,6 +26,8 @@ const CountdownOverlay = ({ seconds, nextEpisodeTitle, onComplete, onCancel }: C
 
     return () => clearInterval(timer);
   }, [timeLeft, onComplete]);
+
+  if (!isVisible) return null;
 
   return (
     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
