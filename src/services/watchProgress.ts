@@ -8,7 +8,6 @@ export interface WatchProgress {
   seasonId?: string;
   episodeId?: string;
   updatedAt: number;
-  autoplay?: boolean;
 }
 
 export const saveWatchProgress = async (
@@ -64,36 +63,6 @@ export const getWatchProgress = async (
     
     return null;
   } catch (error) {
-    return null;
-  }
-};
-
-// Get the most recent watch progress for any episode of a show
-export const getLatestShowProgress = async (
-  userId: string,
-  contentId: string
-): Promise<WatchProgress | null> => {
-  try {
-    const { collection, query, where, orderBy, limit, getDocs } = await import('firebase/firestore');
-    
-    const progressQuery = query(
-      collection(db, 'watchProgress'),
-      where('userId', '==', userId),
-      where('contentId', '==', contentId),
-      where('contentType', '==', 'tv'),
-      orderBy('updatedAt', 'desc'),
-      limit(1)
-    );
-    
-    const snapshot = await getDocs(progressQuery);
-    
-    if (!snapshot.empty) {
-      return snapshot.docs[0].data() as WatchProgress;
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error getting latest show progress:', error);
     return null;
   }
 };
