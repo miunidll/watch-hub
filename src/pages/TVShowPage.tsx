@@ -11,6 +11,7 @@ import { watchProgressQueue } from '@/services/watchProgressQueue';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import CountdownOverlay from '@/components/CountdownOverlay';
 
 const TVShowPage = () => {
   const { id } = useParams();
@@ -20,6 +21,8 @@ const TVShowPage = () => {
   const { user } = useAuth();
   const [autoplay, setAutoplay] = useState(true);
   const [shouldAutostart, setShouldAutostart] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [nextEpisodeInfo, setNextEpisodeInfo] = useState<{ season: any; episode: any } | null>(null);
   
   const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
@@ -54,6 +57,22 @@ const TVShowPage = () => {
     }
   }, [user, id, selectedSeason, selectedEpisode]);
 
+  const playNextEpisode = useCallback(() => {
+    if (!nextEpisodeInfo) return;
+
+    setSelectedSeason(nextEpisodeInfo.season);
+    setSelectedEpisode(nextEpisodeInfo.episode);
+    setInitialTime(0);
+    setShouldAutostart(true);
+    setShowCountdown(false);
+    setNextEpisodeInfo(null);
+
+    toast({
+      title: nextEpisodeInfo.season.id === selectedSeason?.id ? "Next Episode" : "Next Season",
+      description: `Now playing: ${nextEpisodeInfo.episode.title}`,
+    });
+  }, [nextEpisodeInfo, selectedSeason, toast]);
+
   const handleEpisodeEnded = useCallback(() => {
     if (!selectedSeason || !selectedEpisode || !show || !autoplay) return;
 
@@ -65,14 +84,8 @@ const TVShowPage = () => {
     // Check if there's a next episode in the current season
     if (currentEpisodeIndex < selectedSeason.episodes.length - 1) {
       const nextEpisode = selectedSeason.episodes[currentEpisodeIndex + 1];
-      setSelectedEpisode(nextEpisode);
-      setInitialTime(0);
-      setShouldAutostart(true);
-      
-      toast({
-        title: "Next Episode",
-        description: `Now playing: ${nextEpisode.title}`,
-      });
+      setNextEpisodeInfo({ season: selectedSeason, episode: nextEpisode });
+      setShowCountdown(true);
       return;
     }
 
@@ -82,15 +95,8 @@ const TVShowPage = () => {
       const nextSeason = show.seasons[currentSeasonIndex + 1];
       const firstEpisode = nextSeason.episodes[0];
       
-      setSelectedSeason(nextSeason);
-      setSelectedEpisode(firstEpisode);
-      setInitialTime(0);
-      setShouldAutostart(true);
-      
-      toast({
-        title: "Next Season",
-        description: `Season ${nextSeason.number}, Episode 1: ${firstEpisode.title}`,
-      });
+      setNextEpisodeInfo({ season: nextSeason, episode: firstEpisode });
+      setShowCountdown(true);
       return;
     }
 
@@ -243,15 +249,28 @@ const TVShowPage = () => {
                   </Label>
                 </div>
               </div>
-              <VideoPlayer
-                key={`${id}-${selectedSeason.id}-${selectedEpisode.id}`}
-                url={selectedEpisode.videoUrl} 
-                title={selectedEpisode.title}
-                initialTime={initialTime}
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleEpisodeEnded}
-                autostart={shouldAutostart}
-              />
+              <div className="relative">
+                <VideoPlayer
+                  key={`${id}-${selectedSeason.id}-${selectedEpisode.id}`}
+                  url={selectedEpisode.videoUrl} 
+                  title={selectedEpisode.title}
+                  initialTime={initialTime}
+                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={handleEpisodeEnded}
+                  autostart={shouldAutostart}
+                />
+                {showCountdown && nextEpisodeInfo && (
+                  <CountdownOverlay
+                    seconds={10}
+                    nextEpisodeTitle={nextEpisodeInfo.episode.title}
+                    onComplete={playNextEpisode}
+                    onCancel={() => {
+                      setShowCountdown(false);
+                      setNextEpisodeInfo(null);
+                    }}
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
