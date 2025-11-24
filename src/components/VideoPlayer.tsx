@@ -42,6 +42,8 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       const player = playerRef.current?.plyr;
       if (!player) return;
 
+      console.log('🎬 Setting up Plyr event listeners...');
+
       const handleTimeUpdate = () => {
         const currentTime = player.currentTime;
         if (currentTime) {
@@ -50,42 +52,34 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       };
 
       const handlePause = () => {
-        console.log('🎬 Video paused, saving progress...');
+        console.log('⏸️ PAUSE event fired!');
+        const currentTime = player.currentTime;
+        if (currentTime) {
+          console.log('💾 Saving on pause at:', currentTime);
+          onTimeUpdate(currentTime);
+        }
+      };
+
+      const handleEnded = () => {
+        console.log('🏁 VIDEO ENDED event fired!');
         const currentTime = player.currentTime;
         if (currentTime) {
           onTimeUpdate(currentTime);
         }
       };
 
-      if (typeof player.on === 'function') {
-        player.on('ready', () => {
-          const mediaElement = player.media;
-          if (mediaElement) {
-            mediaElement.addEventListener('timeupdate', handleTimeUpdate);
-            mediaElement.addEventListener('pause', handlePause);
-            mediaElement.addEventListener('ended', handleTimeUpdate);
-          }
-        });
+      // Use Plyr's event system
+      player.on('timeupdate', handleTimeUpdate);
+      player.on('pause', handlePause);
+      player.on('ended', handleEnded);
 
-        player.on('timeupdate', () => {
-          handleTimeUpdate();
-        });
-        
-        player.on('pause', () => {
-          handlePause();
-        });
-        
-        player.on('ended', () => {
-          handleTimeUpdate();
-        });
-      } else {
-        const mediaElement = player.media;
-        if (mediaElement) {
-          mediaElement.addEventListener('timeupdate', handleTimeUpdate);
-          mediaElement.addEventListener('pause', handlePause);
-          mediaElement.addEventListener('ended', handleTimeUpdate);
-        }
-      }
+      console.log('✅ Event listeners attached');
+
+      return () => {
+        player.off('timeupdate', handleTimeUpdate);
+        player.off('pause', handlePause);
+        player.off('ended', handleEnded);
+      };
     }, 100);
 
     return () => {
