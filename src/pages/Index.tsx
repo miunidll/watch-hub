@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Film, Tv, Search, LogIn, LogOut } from 'lucide-react';
 import ContentCard from '@/components/ContentCard';
@@ -24,6 +24,10 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
   const { user, logOut } = useAuth();
+
+  useEffect(() => {
+    document.title = 'Home - Streaming Platform';
+  }, []);
 
   const handleLogout = async () => {
     await logOut();
