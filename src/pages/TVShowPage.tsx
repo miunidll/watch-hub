@@ -19,8 +19,8 @@ const TVShowPage = () => {
 
   useEffect(() => {
     const loadProgress = async () => {
-      if (user && id && selectedEpisode) {
-        const progress = await getWatchProgress(user.uid, id, selectedEpisode.id);
+      if (user && id && selectedSeason && selectedEpisode) {
+        const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
         if (progress && progress.episodeId === selectedEpisode.id) {
           setInitialTime(progress.timestamp);
         } else {
@@ -29,14 +29,16 @@ const TVShowPage = () => {
       }
     };
     loadProgress();
-  }, [user, id, selectedEpisode]);
+  }, [user, id, selectedSeason, selectedEpisode]);
 
   const handleTimeUpdate = useCallback(async (currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
+      const docId = `${user.uid}_${id}_${selectedSeason.id}_${selectedEpisode.id}`;
       console.log('💾 Saving TV progress:', { 
+        seasonId: selectedSeason.id,
         episodeId: selectedEpisode.id, 
         currentTime,
-        docId: `${user.uid}_${id}_${selectedEpisode.id}`
+        docId
       });
       
       const result = await saveWatchProgress(user.uid, {
@@ -141,7 +143,7 @@ const TVShowPage = () => {
                     
                     // Load progress for the first episode of the new season
                     if (user && id) {
-                      const progress = await getWatchProgress(user.uid, id, season.episodes[0].id);
+                      const progress = await getWatchProgress(user.uid, id, season.id, season.episodes[0].id);
                       setInitialTime(progress?.timestamp || 0);
                     }
                   }
@@ -163,12 +165,12 @@ const TVShowPage = () => {
                 value={selectedEpisode?.id} 
                 onValueChange={async (value) => {
                   const episode = selectedSeason?.episodes.find(e => e.id === value);
-                  if (episode) {
+                  if (episode && selectedSeason) {
                     setSelectedEpisode(episode);
                     
                     // Load progress for the newly selected episode
                     if (user && id) {
-                      const progress = await getWatchProgress(user.uid, id, episode.id);
+                      const progress = await getWatchProgress(user.uid, id, selectedSeason.id, episode.id);
                       setInitialTime(progress?.timestamp || 0);
                     }
                   }

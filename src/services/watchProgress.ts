@@ -15,9 +15,9 @@ export const saveWatchProgress = async (
   progress: WatchProgress
 ) => {
   try {
-    // For TV shows, include episode ID in the document ID to track per-episode progress
-    const docId = progress.contentType === 'tv' && progress.episodeId
-      ? `${userId}_${progress.contentId}_${progress.episodeId}`
+    // For TV shows, include BOTH season and episode ID to handle duplicate episode numbers
+    const docId = progress.contentType === 'tv' && progress.seasonId && progress.episodeId
+      ? `${userId}_${progress.contentId}_${progress.seasonId}_${progress.episodeId}`
       : `${userId}_${progress.contentId}`;
     
     console.log('🔄 Firestore save:', { docId, timestamp: progress.timestamp });
@@ -40,12 +40,13 @@ export const saveWatchProgress = async (
 export const getWatchProgress = async (
   userId: string,
   contentId: string,
+  seasonId?: string,
   episodeId?: string
 ): Promise<WatchProgress | null> => {
   try {
-    // For TV shows with episode ID, get episode-specific progress
-    const docId = episodeId
-      ? `${userId}_${contentId}_${episodeId}`
+    // For TV shows with season and episode ID, get episode-specific progress
+    const docId = seasonId && episodeId
+      ? `${userId}_${contentId}_${seasonId}_${episodeId}`
       : `${userId}_${contentId}`;
     
     const progressRef = doc(db, 'watchProgress', docId);
