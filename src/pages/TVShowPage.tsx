@@ -34,10 +34,11 @@ const TVShowPage = () => {
         const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
         if (progress && progress.episodeId === selectedEpisode.id) {
           setInitialTime(progress.timestamp);
-          setShouldAutostart(false);
+          // Don't reset shouldAutostart here - it might be set by autoplay
         } else {
           setInitialTime(0);
-          setShouldAutostart(false);
+          // Only reset shouldAutostart if we're not in autoplay mode
+          setShouldAutostart(prev => prev);
         }
       }
     };
@@ -264,7 +265,7 @@ const TVShowPage = () => {
                 />
                 {showCountdown && nextEpisodeInfo && (
                   <CountdownOverlay
-                    seconds={10}
+                    seconds={5}
                     nextEpisodeTitle={nextEpisodeInfo.episode.title}
                     onComplete={playNextEpisode}
                     onCancel={() => {
