@@ -59,7 +59,7 @@ const MoviePage = () => {
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 hidden lg:block">
             <img 
               src={movie.poster} 
               alt={movie.title}
