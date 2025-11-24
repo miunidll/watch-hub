@@ -54,16 +54,28 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
           const mediaElement = player.media;
           if (mediaElement) {
             mediaElement.addEventListener('timeupdate', handleTimeUpdate);
+            mediaElement.addEventListener('pause', handleTimeUpdate);
+            mediaElement.addEventListener('ended', handleTimeUpdate);
           }
         });
 
         player.on('timeupdate', () => {
           handleTimeUpdate();
         });
+        
+        player.on('pause', () => {
+          handleTimeUpdate();
+        });
+        
+        player.on('ended', () => {
+          handleTimeUpdate();
+        });
       } else {
         const mediaElement = player.media;
         if (mediaElement) {
           mediaElement.addEventListener('timeupdate', handleTimeUpdate);
+          mediaElement.addEventListener('pause', handleTimeUpdate);
+          mediaElement.addEventListener('ended', handleTimeUpdate);
         }
       }
     }, 100);
