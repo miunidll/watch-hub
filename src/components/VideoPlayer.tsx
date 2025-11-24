@@ -38,11 +38,20 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
   useEffect(() => {
     if (!onTimeUpdate) return;
 
+    console.log('🔧 VideoPlayer effect running...');
+
     const timer = setTimeout(() => {
       const player = playerRef.current?.plyr;
-      if (!player) return;
+      console.log('🎮 Player ref:', playerRef.current);
+      console.log('🎮 Plyr instance:', player);
+      
+      if (!player) {
+        console.log('❌ No player found!');
+        return;
+      }
 
-      console.log('🎬 Setting up Plyr event listeners...');
+      console.log('✅ Player found, setting up events...');
+      console.log('🎮 Player has .on method?', typeof player.on === 'function');
 
       const handleTimeUpdate = () => {
         const currentTime = player.currentTime;
@@ -52,16 +61,16 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       };
 
       const handlePause = () => {
-        console.log('⏸️ PAUSE event fired!');
+        console.log('⏸️ PAUSE EVENT FIRED!');
         const currentTime = player.currentTime;
+        console.log('⏸️ Current time on pause:', currentTime);
         if (currentTime) {
-          console.log('💾 Saving on pause at:', currentTime);
           onTimeUpdate(currentTime);
         }
       };
 
       const handleEnded = () => {
-        console.log('🏁 VIDEO ENDED event fired!');
+        console.log('🏁 ENDED EVENT FIRED!');
         const currentTime = player.currentTime;
         if (currentTime) {
           onTimeUpdate(currentTime);
@@ -73,9 +82,10 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       player.on('pause', handlePause);
       player.on('ended', handleEnded);
 
-      console.log('✅ Event listeners attached');
+      console.log('✅ All event listeners attached successfully');
 
       return () => {
+        console.log('🧹 Cleaning up event listeners');
         player.off('timeupdate', handleTimeUpdate);
         player.off('pause', handlePause);
         player.off('ended', handleEnded);
