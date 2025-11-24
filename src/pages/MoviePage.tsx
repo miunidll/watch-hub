@@ -67,7 +67,7 @@ const MoviePage = () => {
             />
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 flex flex-col">
             <div>
               <h1 className="text-4xl font-bold mb-2">{movie.title}</h1>
               <div className="flex items-center gap-4 text-muted-foreground">
@@ -85,9 +85,9 @@ const MoviePage = () => {
               <p className="text-muted-foreground leading-relaxed">{movie.description}</p>
             </div>
 
-            <div>
+            <div className="flex-1 flex flex-col">
               <h2 className="text-xl font-semibold mb-3">Trailer</h2>
-              <div className="aspect-video rounded-lg overflow-hidden">
+              <div className="flex-1 rounded-lg overflow-hidden">
                 <iframe
                   width="100%"
                   height="100%"
