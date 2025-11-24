@@ -71,35 +71,42 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
   useEffect(() => {
     if (!onTimeUpdate) return;
 
-    console.log('🔧 VideoPlayer: Setting up event listeners');
+    console.log('🔧 VideoPlayer: Initializing event listeners');
 
-    const timer = setTimeout(() => {
+    let attached = false;
+    let cleanupFunctions: (() => void)[] = [];
+
+    const attachListeners = () => {
       const player = playerRef.current?.plyr;
       
       if (!player) {
-        console.log('❌ No player found for event setup!');
-        return;
+        console.log('❌ No player found, will retry...');
+        return false;
       }
 
-      console.log('✅ Player found, attaching event listeners');
+      if (attached) {
+        console.log('⚠️ Listeners already attached, skipping');
+        return true;
+      }
+
+      console.log('✅ Player ready, attaching event listeners');
 
       let lastSaveTime = 0;
-      const SAVE_INTERVAL = 3000; // Save at most every 3 seconds during playback
+      const SAVE_INTERVAL = 3000;
 
       const handleTimeUpdate = () => {
         const currentTime = player.currentTime;
         const now = Date.now();
         
-        // Debounce saves during playback
         if (currentTime && now - lastSaveTime >= SAVE_INTERVAL) {
           lastSaveTime = now;
-          console.log('📹 Timeupdate save at:', currentTime);
+          console.log('📹 Auto-save at:', currentTime.toFixed(2));
           onTimeUpdate(currentTime);
         }
       };
 
       const handlePause = () => {
-        console.log('⏸️ PAUSE - saving immediately');
+        console.log('⏸️ PAUSE - immediate save');
         const currentTime = player.currentTime;
         if (currentTime) {
           onTimeUpdate(currentTime);
@@ -107,35 +114,54 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       };
 
       const handleEnded = () => {
-        console.log('🏁 ENDED - saving final position');
+        console.log('🏁 ENDED - final save');
         const currentTime = player.currentTime;
         if (currentTime) {
           onTimeUpdate(currentTime);
         }
       };
 
-      // Remove any existing listeners first (cleanup)
-      player.off('timeupdate');
-      player.off('pause');
-      player.off('ended');
-
-      // Attach fresh listeners
+      // Attach listeners
       player.on('timeupdate', handleTimeUpdate);
       player.on('pause', handlePause);
       player.on('ended', handleEnded);
+      
+      attached = true;
+      console.log('✅ Event listeners successfully attached');
 
-      console.log('✅ Event listeners attached');
-
-      return () => {
-        console.log('🧹 Cleaning up VideoPlayer event listeners');
+      // Store cleanup function
+      cleanupFunctions.push(() => {
+        console.log('🧹 Removing event listeners');
         player.off('timeupdate', handleTimeUpdate);
         player.off('pause', handlePause);
         player.off('ended', handleEnded);
-      };
-    }, 100);
+        attached = false;
+      });
+
+      return true;
+    };
+
+    // Try multiple times with increasing delays
+    const attempts = [
+      setTimeout(() => {
+        if (!attachListeners()) {
+          console.log('⏳ First attempt failed, waiting for ready event...');
+          const player = playerRef.current?.plyr;
+          if (player) {
+            player.on('ready', attachListeners);
+            cleanupFunctions.push(() => player.off('ready', attachListeners));
+          }
+        }
+      }, 50),
+      setTimeout(attachListeners, 200),
+      setTimeout(attachListeners, 500)
+    ];
 
     return () => {
-      clearTimeout(timer);
+      console.log('🧹 VideoPlayer cleanup');
+      attempts.forEach(clearTimeout);
+      cleanupFunctions.forEach(cleanup => cleanup());
+      attached = false;
     };
   }, [onTimeUpdate]);
 
