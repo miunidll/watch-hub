@@ -217,7 +217,7 @@ const TVShowPage = () => {
               <p className="text-muted-foreground leading-relaxed">{show.description}</p>
             </div>
 
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex-col hidden lg:flex">
               <h2 className="text-xl font-semibold mb-3">Trailer</h2>
               <div className="flex-1 rounded-lg overflow-hidden">
                 <iframe
