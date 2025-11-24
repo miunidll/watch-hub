@@ -1,0 +1,11 @@
+{
+  "id": "4",
+  "title": "Interstellar",
+  "type": "movie",
+  "poster": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&h=600&fit=crop",
+  "description": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+  "trailer": "zSWdZVtXT7E",
+  "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+  "year": 2014,
+  "duration": "2h 49m"
+}

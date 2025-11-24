@@ -1,0 +1,11 @@
+{
+  "id": "2",
+  "title": "The Matrix",
+  "type": "movie",
+  "poster": "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=600&fit=crop",
+  "description": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
+  "trailer": "m8e-FF8MsqU",
+  "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  "year": 1999,
+  "duration": "2h 16m"
+}

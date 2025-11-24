@@ -1,0 +1,11 @@
+{
+  "id": "1",
+  "title": "Inception",
+  "type": "movie",
+  "poster": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&h=600&fit=crop",
+  "description": "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+  "trailer": "YoHD9XEInc0",
+  "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  "year": 2010,
+  "duration": "2h 28m"
+}
