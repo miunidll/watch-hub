@@ -28,6 +28,17 @@ const TVShowPage = () => {
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
   const [initialTime, setInitialTime] = useState(0);
 
+  // Reset shouldAutostart after player has had time to use it
+  useEffect(() => {
+    if (shouldAutostart) {
+      const timer = setTimeout(() => {
+        console.log('Resetting shouldAutostart to false');
+        setShouldAutostart(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldAutostart]);
+
   useEffect(() => {
     const loadProgress = async () => {
       if (user && id && selectedSeason && selectedEpisode && !shouldAutostart) {
@@ -60,25 +71,27 @@ const TVShowPage = () => {
 
     console.log('Playing next episode:', nextEpisodeInfo.episode.title);
     
-    // Hide countdown first
-    setShowCountdown(false);
-    
-    // Use a ref-like approach to batch updates
     const newSeason = nextEpisodeInfo.season;
     const newEpisode = nextEpisodeInfo.episode;
     const wasSeasonChange = newSeason.id !== selectedSeason?.id;
     
-    // Update all states together
-    setNextEpisodeInfo(null);
+    // Update episode states
     setSelectedSeason(newSeason);
     setSelectedEpisode(newEpisode);
     setInitialTime(0);
-    setShouldAutostart(true);
-
-    toast({
-      title: wasSeasonChange ? "Next Season" : "Next Episode",
-      description: `Now playing: ${newEpisode.title}`,
-    });
+    
+    // Clear countdown state
+    setNextEpisodeInfo(null);
+    setShowCountdown(false);
+    
+    // Trigger autostart after a brief delay to ensure states are updated
+    setTimeout(() => {
+      setShouldAutostart(true);
+      toast({
+        title: wasSeasonChange ? "Next Season" : "Next Episode",
+        description: `Now playing: ${newEpisode.title}`,
+      });
+    }, 100);
   }, [nextEpisodeInfo, selectedSeason, toast]);
 
   const handleEpisodeEnded = useCallback(() => {
