@@ -69,19 +69,19 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     if (!autostart) return;
 
     console.log('Autostart effect triggered for URL:', url);
-    let autostartExecuted = false;
+    let executed = false;
 
     const startPlayback = () => {
-      if (autostartExecuted) return;
+      if (executed) return;
       
       const player = playerRef.current?.plyr;
       if (!player) return;
 
       const attemptPlay = () => {
-        if (autostartExecuted) return;
+        if (executed) return;
+        executed = true;
         try {
           player.play();
-          autostartExecuted = true;
           console.log('Autoplay started successfully');
         } catch (error) {
           console.log('Autoplay failed:', error);
@@ -90,13 +90,19 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
 
       const readyHandler = () => {
         attemptPlay();
-        player.off('ready', readyHandler);
+        try {
+          player.off('ready', readyHandler);
+        } catch (e) {}
       };
 
       if (player.ready) {
         attemptPlay();
       } else {
-        player.on('ready', readyHandler);
+        try {
+          player.on('ready', readyHandler);
+        } catch (e) {
+          console.log('Could not attach ready handler');
+        }
       }
 
       setTimeout(attemptPlay, 100);
@@ -107,7 +113,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
 
     return () => {
       clearTimeout(timer);
-      autostartExecuted = true;
+      executed = true;
     };
   }, [autostart, url]);
 

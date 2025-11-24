@@ -28,30 +28,19 @@ const TVShowPage = () => {
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
   const [initialTime, setInitialTime] = useState(0);
 
-  // Reset shouldAutostart after it's been used
-  useEffect(() => {
-    if (shouldAutostart) {
-      const timer = setTimeout(() => setShouldAutostart(false), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [shouldAutostart]);
-
   useEffect(() => {
     const loadProgress = async () => {
-      if (user && id && selectedSeason && selectedEpisode) {
-        // Only load progress if we're not about to autostart
-        if (!shouldAutostart) {
-          const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
-          if (progress && progress.episodeId === selectedEpisode.id) {
-            setInitialTime(progress.timestamp);
-          } else {
-            setInitialTime(0);
-          }
+      if (user && id && selectedSeason && selectedEpisode && !shouldAutostart) {
+        const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
+        if (progress && progress.episodeId === selectedEpisode.id) {
+          setInitialTime(progress.timestamp);
+        } else {
+          setInitialTime(0);
         }
       }
     };
     loadProgress();
-  }, [user, id, selectedSeason, selectedEpisode, shouldAutostart]);
+  }, [user, id, selectedSeason?.id, selectedEpisode?.id]);
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
@@ -71,19 +60,24 @@ const TVShowPage = () => {
 
     console.log('Playing next episode:', nextEpisodeInfo.episode.title);
     
-    // Update episode and autostart
-    setSelectedSeason(nextEpisodeInfo.season);
-    setSelectedEpisode(nextEpisodeInfo.episode);
+    // Hide countdown first
+    setShowCountdown(false);
+    
+    // Use a ref-like approach to batch updates
+    const newSeason = nextEpisodeInfo.season;
+    const newEpisode = nextEpisodeInfo.episode;
+    const wasSeasonChange = newSeason.id !== selectedSeason?.id;
+    
+    // Update all states together
+    setNextEpisodeInfo(null);
+    setSelectedSeason(newSeason);
+    setSelectedEpisode(newEpisode);
     setInitialTime(0);
     setShouldAutostart(true);
-    
-    // Hide countdown after state updates
-    setShowCountdown(false);
-    setNextEpisodeInfo(null);
 
     toast({
-      title: nextEpisodeInfo.season.id === selectedSeason?.id ? "Next Episode" : "Next Season",
-      description: `Now playing: ${nextEpisodeInfo.episode.title}`,
+      title: wasSeasonChange ? "Next Season" : "Next Episode",
+      description: `Now playing: ${newEpisode.title}`,
     });
   }, [nextEpisodeInfo, selectedSeason, toast]);
 
