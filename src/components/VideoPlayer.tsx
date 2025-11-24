@@ -135,11 +135,27 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       // Restore fullscreen if it was active
       if (shouldRestoreFullscreen) {
         console.log('✅ Will attempt to restore fullscreen');
-        const restoreFullscreen = () => {
+        const restoreFullscreen = async () => {
           console.log('🔍 Checking fullscreen state. Active:', player.fullscreen?.active);
           if (player.fullscreen && !player.fullscreen.active) {
             console.log('📺 Calling player.fullscreen.enter()');
-            player.fullscreen.enter();
+            try {
+              await player.fullscreen.enter();
+              console.log('✅ Fullscreen entered successfully');
+            } catch (error) {
+              console.log('❌ Failed to enter fullscreen:', error);
+              // Browsers often block fullscreen without user gesture
+              // Try using native fullscreen API as fallback
+              const videoElement = player.elements?.container;
+              if (videoElement?.requestFullscreen) {
+                try {
+                  await videoElement.requestFullscreen();
+                  console.log('✅ Fullscreen entered via native API');
+                } catch (e) {
+                  console.log('❌ Native fullscreen also failed:', e);
+                }
+              }
+            }
           } else {
             console.log('⚠️ Fullscreen already active or not available');
           }
