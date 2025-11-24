@@ -260,29 +260,29 @@ const TVShowPage = () => {
                   </Label>
                 </div>
               </div>
-              <div className="relative">
-                <VideoPlayer
-                  key={`${selectedSeason.id}-${selectedEpisode.id}`}
-                  url={selectedEpisode.videoUrl} 
-                  title={selectedEpisode.title}
-                  initialTime={initialTime}
-                  onTimeUpdate={handleTimeUpdate}
-                  onEnded={handleEpisodeEnded}
-                  autostart={shouldAutostart}
-                />
-                {showCountdown && nextEpisodeInfo && (
-                  <CountdownOverlay
-                    seconds={5}
-                    nextEpisodeTitle={nextEpisodeInfo.episode.title}
-                    onComplete={playNextEpisode}
-                    onCancel={() => {
-                      console.log('Countdown cancelled');
-                      setShowCountdown(false);
-                      setNextEpisodeInfo(null);
-                    }}
-                  />
-                )}
-              </div>
+              <VideoPlayer
+                key={`${selectedSeason.id}-${selectedEpisode.id}`}
+                url={selectedEpisode.videoUrl} 
+                title={selectedEpisode.title}
+                initialTime={initialTime}
+                onTimeUpdate={handleTimeUpdate}
+                onEnded={handleEpisodeEnded}
+                autostart={shouldAutostart}
+                countdownOverlay={
+                  showCountdown && nextEpisodeInfo ? (
+                    <CountdownOverlay
+                      seconds={5}
+                      nextEpisodeTitle={nextEpisodeInfo.episode.title}
+                      onComplete={playNextEpisode}
+                      onCancel={() => {
+                        console.log('Countdown cancelled');
+                        setShowCountdown(false);
+                        setNextEpisodeInfo(null);
+                      }}
+                    />
+                  ) : null
+                }
+              />
             </div>
           )}
         </div>
