@@ -34,12 +34,10 @@ const TVShowPage = () => {
         const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
         if (progress && progress.episodeId === selectedEpisode.id) {
           setInitialTime(progress.timestamp);
-          // Don't reset shouldAutostart here - it might be set by autoplay
         } else {
           setInitialTime(0);
-          // Only reset shouldAutostart if we're not in autoplay mode
-          setShouldAutostart(prev => prev);
         }
+        // Never reset shouldAutostart - it's managed by autoplay logic
       }
     };
     loadProgress();
@@ -61,17 +59,24 @@ const TVShowPage = () => {
   const playNextEpisode = useCallback(() => {
     if (!nextEpisodeInfo) return;
 
-    setSelectedSeason(nextEpisodeInfo.season);
-    setSelectedEpisode(nextEpisodeInfo.episode);
-    setInitialTime(0);
-    setShouldAutostart(true);
+    console.log('Playing next episode:', nextEpisodeInfo.episode.title);
+    
+    // Hide countdown immediately
     setShowCountdown(false);
     setNextEpisodeInfo(null);
+    
+    // Short delay to ensure state updates, then switch episode
+    setTimeout(() => {
+      setSelectedSeason(nextEpisodeInfo.season);
+      setSelectedEpisode(nextEpisodeInfo.episode);
+      setInitialTime(0);
+      setShouldAutostart(true);
 
-    toast({
-      title: nextEpisodeInfo.season.id === selectedSeason?.id ? "Next Episode" : "Next Season",
-      description: `Now playing: ${nextEpisodeInfo.episode.title}`,
-    });
+      toast({
+        title: nextEpisodeInfo.season.id === selectedSeason?.id ? "Next Episode" : "Next Season",
+        description: `Now playing: ${nextEpisodeInfo.episode.title}`,
+      });
+    }, 50);
   }, [nextEpisodeInfo, selectedSeason, toast]);
 
   const handleEpisodeEnded = useCallback(() => {

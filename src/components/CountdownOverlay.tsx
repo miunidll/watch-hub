@@ -13,17 +13,19 @@ const CountdownOverlay = ({ seconds, nextEpisodeTitle, onComplete, onCancel }: C
   const [timeLeft, setTimeLeft] = useState(seconds);
 
   useEffect(() => {
-    if (timeLeft <= 0) {
-      onComplete();
-      return;
-    }
-
     const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setTimeout(() => onComplete(), 100);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, onComplete]);
+  }, [onComplete]);
 
   return (
     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
