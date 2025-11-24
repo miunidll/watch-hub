@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Film, Tv, Search, LogIn } from 'lucide-react';
+import { Film, Tv, Search, LogIn, LogOut } from 'lucide-react';
 import ContentCard from '@/components/ContentCard';
 import { contentData } from '@/data/content';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 type FilterType = 'all' | 'movie' | 'tv';
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
+  const { user, logOut } = useAuth();
+
+  const handleLogout = async () => {
+    await logOut();
+  };
 
   const filteredContent = contentData.filter(content => {
     const matchesFilter = filter === 'all' || content.type === filter;
@@ -46,12 +52,19 @@ const Index = () => {
                 className="pl-9"
               />
             </div>
-            <Link to="/auth">
-              <Button variant="outline" size="sm">
-                <LogIn className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Sign In</span>
+            {user ? (
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
               </Button>
-            </Link>
+            ) : (
+              <Link to="/auth">
+                <Button variant="outline" size="sm">
+                  <LogIn className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>

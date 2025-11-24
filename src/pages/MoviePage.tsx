@@ -1,12 +1,40 @@
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { contentData, Movie } from '@/data/content';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveWatchProgress, getWatchProgress } from '@/services/watchProgress';
 
 const MoviePage = () => {
   const { id } = useParams();
   const movie = contentData.find(c => c.id === id && c.type === 'movie') as Movie;
+  const { user } = useAuth();
+  const [initialTime, setInitialTime] = useState(0);
+
+  useEffect(() => {
+    const loadProgress = async () => {
+      if (user && id) {
+        const progress = await getWatchProgress(user.uid, id);
+        if (progress) {
+          setInitialTime(progress.timestamp);
+        }
+      }
+    };
+    loadProgress();
+  }, [user, id]);
+
+  const handleTimeUpdate = useCallback((currentTime: number) => {
+    if (user && id) {
+      saveWatchProgress(user.uid, {
+        contentId: id,
+        contentType: 'movie',
+        timestamp: currentTime,
+        updatedAt: Date.now(),
+      });
+    }
+  }, [user, id]);
 
   if (!movie) {
     return (
@@ -76,7 +104,12 @@ const MoviePage = () => {
 
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Watch Now</h2>
-          <VideoPlayer url={movie.videoUrl} title={movie.title} />
+          <VideoPlayer 
+            url={movie.videoUrl} 
+            title={movie.title}
+            initialTime={initialTime}
+            onTimeUpdate={handleTimeUpdate}
+          />
         </div>
       </div>
     </div>

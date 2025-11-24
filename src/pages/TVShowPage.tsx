@@ -1,17 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { contentData, TVShow } from '@/data/content';
 import VideoPlayer from '@/components/VideoPlayer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveWatchProgress, getWatchProgress } from '@/services/watchProgress';
 
 const TVShowPage = () => {
   const { id } = useParams();
   const show = contentData.find(c => c.id === id && c.type === 'tv') as TVShow;
+  const { user } = useAuth();
   
   const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
+  const [initialTime, setInitialTime] = useState(0);
+
+  useEffect(() => {
+    const loadProgress = async () => {
+      if (user && id) {
+        const progress = await getWatchProgress(user.uid, id);
+        if (progress && progress.seasonId && progress.episodeId) {
+          const season = show?.seasons.find(s => s.id === progress.seasonId);
+          const episode = season?.episodes.find(e => e.id === progress.episodeId);
+          if (season && episode) {
+            setSelectedSeason(season);
+            setSelectedEpisode(episode);
+            setInitialTime(progress.timestamp);
+          }
+        }
+      }
+    };
+    loadProgress();
+  }, [user, id, show]);
+
+  const handleTimeUpdate = useCallback((currentTime: number) => {
+    if (user && id && selectedSeason && selectedEpisode) {
+      saveWatchProgress(user.uid, {
+        contentId: id,
+        contentType: 'tv',
+        timestamp: currentTime,
+        seasonId: selectedSeason.id,
+        episodeId: selectedEpisode.id,
+        updatedAt: Date.now(),
+      });
+    }
+  }, [user, id, selectedSeason, selectedEpisode]);
 
   if (!show) {
     return (
@@ -129,7 +164,12 @@ const TVShowPage = () => {
               <h3 className="text-lg font-semibold">
                 {selectedEpisode.title} <span className="text-muted-foreground">({selectedEpisode.duration})</span>
               </h3>
-              <VideoPlayer url={selectedEpisode.videoUrl} title={selectedEpisode.title} />
+              <VideoPlayer 
+                url={selectedEpisode.videoUrl} 
+                title={selectedEpisode.title}
+                initialTime={initialTime}
+                onTimeUpdate={handleTimeUpdate}
+              />
             </div>
           )}
         </div>
