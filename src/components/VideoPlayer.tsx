@@ -23,14 +23,20 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
     if (!player || !onTimeUpdate) return;
 
     const handleTimeUpdate = () => {
-      onTimeUpdate(player.currentTime);
+      if (player.currentTime) {
+        onTimeUpdate(player.currentTime);
+      }
     };
 
-    player.on('timeupdate', handleTimeUpdate);
-    
-    return () => {
-      player.off('timeupdate', handleTimeUpdate);
-    };
+    // Use addEventListener on the media element instead of plyr's .on method
+    const mediaElement = player.media;
+    if (mediaElement) {
+      mediaElement.addEventListener('timeupdate', handleTimeUpdate);
+      
+      return () => {
+        mediaElement.removeEventListener('timeupdate', handleTimeUpdate);
+      };
+    }
   }, [onTimeUpdate]);
 
   return (
