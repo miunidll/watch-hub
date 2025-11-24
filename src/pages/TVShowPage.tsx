@@ -19,21 +19,17 @@ const TVShowPage = () => {
 
   useEffect(() => {
     const loadProgress = async () => {
-      if (user && id) {
-        const progress = await getWatchProgress(user.uid, id);
-        if (progress && progress.seasonId && progress.episodeId) {
-          const season = show?.seasons.find(s => s.id === progress.seasonId);
-          const episode = season?.episodes.find(e => e.id === progress.episodeId);
-          if (season && episode) {
-            setSelectedSeason(season);
-            setSelectedEpisode(episode);
-            setInitialTime(progress.timestamp);
-          }
+      if (user && id && selectedEpisode) {
+        const progress = await getWatchProgress(user.uid, id, selectedEpisode.id);
+        if (progress && progress.episodeId === selectedEpisode.id) {
+          setInitialTime(progress.timestamp);
+        } else {
+          setInitialTime(0);
         }
       }
     };
     loadProgress();
-  }, [user, id, show]);
+  }, [user, id, selectedEpisode]);
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
