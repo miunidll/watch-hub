@@ -19,6 +19,7 @@ const TVShowPage = () => {
   const show = contentData.find(c => c.id === id && c.type === 'tv') as TVShow;
   const { user } = useAuth();
   const [autoplay, setAutoplay] = useState(true);
+  const [shouldAutostart, setShouldAutostart] = useState(false);
   
   const [selectedSeason, setSelectedSeason] = useState(show?.seasons[0]);
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
@@ -30,8 +31,10 @@ const TVShowPage = () => {
         const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
         if (progress && progress.episodeId === selectedEpisode.id) {
           setInitialTime(progress.timestamp);
+          setShouldAutostart(false);
         } else {
           setInitialTime(0);
+          setShouldAutostart(false);
         }
       }
     };
@@ -64,6 +67,7 @@ const TVShowPage = () => {
       const nextEpisode = selectedSeason.episodes[currentEpisodeIndex + 1];
       setSelectedEpisode(nextEpisode);
       setInitialTime(0);
+      setShouldAutostart(true);
       
       toast({
         title: "Next Episode",
@@ -81,6 +85,7 @@ const TVShowPage = () => {
       setSelectedSeason(nextSeason);
       setSelectedEpisode(firstEpisode);
       setInitialTime(0);
+      setShouldAutostart(true);
       
       toast({
         title: "Next Season",
@@ -245,6 +250,7 @@ const TVShowPage = () => {
                 initialTime={initialTime}
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleEpisodeEnded}
+                autostart={shouldAutostart}
               />
             </div>
           )}
