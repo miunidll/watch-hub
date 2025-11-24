@@ -29,7 +29,7 @@
           "id": "e3",
           "title": "Chapter Three: Holly, Jolly",
           "number": 3,
-          "videoUrl": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
+          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
           "duration": "51m"
         }
       ]
@@ -42,7 +42,7 @@
           "id": "e1",
           "title": "Chapter One: MADMAX",
           "number": 1,
-          "videoUrl": "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4",
+          "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4",
           "duration": "48m"
         },
         {
