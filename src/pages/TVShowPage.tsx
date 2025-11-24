@@ -28,20 +28,30 @@ const TVShowPage = () => {
   const [selectedEpisode, setSelectedEpisode] = useState(show?.seasons[0]?.episodes[0]);
   const [initialTime, setInitialTime] = useState(0);
 
+  // Reset shouldAutostart after it's been used
+  useEffect(() => {
+    if (shouldAutostart) {
+      const timer = setTimeout(() => setShouldAutostart(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldAutostart]);
+
   useEffect(() => {
     const loadProgress = async () => {
       if (user && id && selectedSeason && selectedEpisode) {
-        const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
-        if (progress && progress.episodeId === selectedEpisode.id) {
-          setInitialTime(progress.timestamp);
-        } else {
-          setInitialTime(0);
+        // Only load progress if we're not about to autostart
+        if (!shouldAutostart) {
+          const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
+          if (progress && progress.episodeId === selectedEpisode.id) {
+            setInitialTime(progress.timestamp);
+          } else {
+            setInitialTime(0);
+          }
         }
-        // Never reset shouldAutostart - it's managed by autoplay logic
       }
     };
     loadProgress();
-  }, [user, id, selectedSeason, selectedEpisode]);
+  }, [user, id, selectedSeason, selectedEpisode, shouldAutostart]);
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
     if (user && id && selectedSeason && selectedEpisode) {
@@ -61,22 +71,20 @@ const TVShowPage = () => {
 
     console.log('Playing next episode:', nextEpisodeInfo.episode.title);
     
-    // Hide countdown immediately
+    // Update episode and autostart
+    setSelectedSeason(nextEpisodeInfo.season);
+    setSelectedEpisode(nextEpisodeInfo.episode);
+    setInitialTime(0);
+    setShouldAutostart(true);
+    
+    // Hide countdown after state updates
     setShowCountdown(false);
     setNextEpisodeInfo(null);
-    
-    // Short delay to ensure state updates, then switch episode
-    setTimeout(() => {
-      setSelectedSeason(nextEpisodeInfo.season);
-      setSelectedEpisode(nextEpisodeInfo.episode);
-      setInitialTime(0);
-      setShouldAutostart(true);
 
-      toast({
-        title: nextEpisodeInfo.season.id === selectedSeason?.id ? "Next Episode" : "Next Season",
-        description: `Now playing: ${nextEpisodeInfo.episode.title}`,
-      });
-    }, 50);
+    toast({
+      title: nextEpisodeInfo.season.id === selectedSeason?.id ? "Next Episode" : "Next Season",
+      description: `Now playing: ${nextEpisodeInfo.episode.title}`,
+    });
   }, [nextEpisodeInfo, selectedSeason, toast]);
 
   const handleEpisodeEnded = useCallback(() => {
@@ -251,7 +259,10 @@ const TVShowPage = () => {
                   <Switch
                     id="autoplay"
                     checked={autoplay}
-                    onCheckedChange={setAutoplay}
+                    onCheckedChange={(checked) => {
+                      setAutoplay(checked);
+                      console.log('Autoplay toggled:', checked);
+                    }}
                   />
                   <Label htmlFor="autoplay" className="cursor-pointer text-sm">
                     Autoplay
@@ -260,7 +271,7 @@ const TVShowPage = () => {
               </div>
               <div className="relative">
                 <VideoPlayer
-                  key={`${id}-${selectedSeason.id}-${selectedEpisode.id}`}
+                  key={`${selectedSeason.id}-${selectedEpisode.id}`}
                   url={selectedEpisode.videoUrl} 
                   title={selectedEpisode.title}
                   initialTime={initialTime}
@@ -274,6 +285,7 @@ const TVShowPage = () => {
                     nextEpisodeTitle={nextEpisodeInfo.episode.title}
                     onComplete={playNextEpisode}
                     onCancel={() => {
+                      console.log('Countdown cancelled');
                       setShowCountdown(false);
                       setNextEpisodeInfo(null);
                     }}
