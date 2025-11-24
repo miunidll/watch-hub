@@ -90,6 +90,12 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         return false;
       }
 
+      // Check if player has required methods
+      if (typeof player.on !== 'function' || typeof player.off !== 'function') {
+        console.log('⚠️ Player not ready yet (missing methods)');
+        return false;
+      }
+
       if (listenersAttached) {
         console.log('⚠️ Listeners already attached to this player instance');
         return true;
@@ -130,10 +136,16 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
         }
       };
 
-      // Remove any old listeners first
-      player.off('timeupdate');
-      player.off('pause');
-      player.off('ended');
+      // Safely remove any old listeners first
+      try {
+        if (typeof player.off === 'function') {
+          player.off('timeupdate');
+          player.off('pause');
+          player.off('ended');
+        }
+      } catch (error) {
+        console.warn('⚠️ Error removing old listeners (ignored):', error);
+      }
 
       // Attach new listeners
       player.on('timeupdate', handleTimeUpdate);
@@ -145,10 +157,17 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
 
       // Store cleanup
       cleanupFns.push(() => {
-        console.log('🧹 Removing event listeners');
-        player.off('timeupdate', handleTimeUpdate);
-        player.off('pause', handlePause);
-        player.off('ended', handleEnded);
+        try {
+          console.log('🧹 Removing event listeners');
+          const currentPlayer = playerRef.current?.plyr;
+          if (currentPlayer && typeof currentPlayer.off === 'function') {
+            currentPlayer.off('timeupdate', handleTimeUpdate);
+            currentPlayer.off('pause', handlePause);
+            currentPlayer.off('ended', handleEnded);
+          }
+        } catch (error) {
+          console.warn('⚠️ Error during cleanup (ignored):', error);
+        }
       });
 
       return true;
@@ -162,26 +181,35 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       
       // Wait for ready event
       const player = playerRef.current?.plyr;
-      if (player) {
+      if (player && typeof player.once === 'function') {
         const readyHandler = () => {
           console.log('🎬 Player ready event fired');
           attachListeners();
         };
         
         player.once('ready', readyHandler);
-        cleanupFns.push(() => player.off('ready', readyHandler));
+        cleanupFns.push(() => {
+          try {
+            const p = playerRef.current?.plyr;
+            if (p && typeof p.off === 'function') {
+              p.off('ready', readyHandler);
+            }
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+        });
       }
       
       // Backup retry attempts
       const retry1 = setTimeout(() => {
-        if (!listenersAttached) {
+        if (!listenersAttached && isActive) {
           console.log('⏳ Retry attempt 1...');
           attachListeners();
         }
       }, 300);
       
       const retry2 = setTimeout(() => {
-        if (!listenersAttached) {
+        if (!listenersAttached && isActive) {
           console.log('⏳ Retry attempt 2...');
           attachListeners();
         }
@@ -197,7 +225,13 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       console.log('🧹 Cleaning up VideoPlayer effect');
       isActive = false;
       listenersAttached = false;
-      cleanupFns.forEach(fn => fn());
+      cleanupFns.forEach(fn => {
+        try {
+          fn();
+        } catch (error) {
+          console.warn('⚠️ Cleanup error (ignored):', error);
+        }
+      });
     };
   }, [onTimeUpdate]);
 
