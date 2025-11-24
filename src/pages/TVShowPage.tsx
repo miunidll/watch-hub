@@ -6,7 +6,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
-import { getWatchProgress, getLatestShowProgress } from '@/services/watchProgress';
+import { getWatchProgress } from '@/services/watchProgress';
 import { watchProgressQueue } from '@/services/watchProgressQueue';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
@@ -43,41 +43,17 @@ const TVShowPage = () => {
 
 
 
-  // Load the last watched episode and autoplay preference on mount
-  useEffect(() => {
-    const loadLastWatched = async () => {
-      if (!user || !id || !show) return;
-      
-      const latestProgress = await getLatestShowProgress(user.uid, id);
-      
-      if (latestProgress && latestProgress.seasonId && latestProgress.episodeId) {
-        // Find the season and episode
-        const season = show.seasons.find(s => s.id === latestProgress.seasonId);
-        if (season) {
-          const episode = season.episodes.find(e => e.id === latestProgress.episodeId);
-          if (episode) {
-            setSelectedSeason(season);
-            setSelectedEpisode(episode);
-            setInitialTime(latestProgress.timestamp || 0);
-            
-            // Restore autoplay preference
-            if (latestProgress.autoplay !== undefined) {
-              setAutoplay(latestProgress.autoplay);
-            }
-          }
-        }
-      }
-    };
-    
-    loadLastWatched();
-  }, [user, id, show]);
-
   useEffect(() => {
     const loadProgress = async () => {
       if (user && id && selectedSeason && selectedEpisode && !shouldAutostart) {
         const progress = await getWatchProgress(user.uid, id, selectedSeason.id, selectedEpisode.id);
         if (progress && progress.episodeId === selectedEpisode.id) {
           setInitialTime(progress.timestamp);
+          
+          // Restore autoplay preference
+          if (progress.autoplay !== undefined) {
+            setAutoplay(progress.autoplay);
+          }
         } else {
           setInitialTime(0);
         }
