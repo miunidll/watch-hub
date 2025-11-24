@@ -103,7 +103,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
   }, [autostart]);
 
   useEffect(() => {
-    if (!onTimeUpdate) return;
+    if (!onTimeUpdate && !onEnded) return;
 
     let isActive = true;
     let listenersAttached = false;
@@ -126,7 +126,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       const SAVE_INTERVAL = 3000;
 
       const handleTimeUpdate = () => {
-        if (!isActive) return;
+        if (!isActive || !onTimeUpdate) return;
         const currentTime = player.currentTime;
         const now = Date.now();
         
@@ -137,7 +137,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       };
 
       const handlePause = () => {
-        if (!isActive) return;
+        if (!isActive || !onTimeUpdate) return;
         const currentTime = player.currentTime;
         if (currentTime) {
           onTimeUpdate(currentTime);
@@ -165,9 +165,14 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
         // Ignore
       }
 
-      player.on('timeupdate', handleTimeUpdate);
-      player.on('pause', handlePause);
-      player.on('ended', handleEnded);
+      if (onTimeUpdate) {
+        player.on('timeupdate', handleTimeUpdate);
+        player.on('pause', handlePause);
+      }
+      
+      if (onEnded) {
+        player.on('ended', handleEnded);
+      }
       
       listenersAttached = true;
 
@@ -232,7 +237,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
         }
       });
     };
-  }, [onTimeUpdate]);
+  }, [onTimeUpdate, onEnded]);
 
   return (
     <div className="w-full rounded-lg overflow-hidden bg-black">
