@@ -7,9 +7,10 @@ interface VideoPlayerProps {
   title: string;
   initialTime?: number;
   onTimeUpdate?: (currentTime: number) => void;
+  onEnded?: () => void;
 }
 
-const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerProps) => {
+const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded }: VideoPlayerProps) => {
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -108,8 +109,11 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate }: VideoPlayerP
       const handleEnded = () => {
         if (!isActive) return;
         const currentTime = player.currentTime;
-        if (currentTime) {
+        if (currentTime && onTimeUpdate) {
           onTimeUpdate(currentTime);
+        }
+        if (onEnded) {
+          onEnded();
         }
       };
 
