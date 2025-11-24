@@ -146,52 +146,10 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     if (!onTimeUpdate && !onEnded) return;
 
     let isActive = true;
-    let listenersAttached = false;
     const cleanupFns: (() => void)[] = [];
 
-    let lastSaveTime = 0;
-    const SAVE_INTERVAL = 3000;
-
-    const handleTimeUpdate = () => {
-      if (!isActive || !onTimeUpdate) return;
-      const player = playerRef.current?.plyr;
-      if (!player) return;
-      const currentTime = player.currentTime;
-      const now = Date.now();
-      
-      if (currentTime && now - lastSaveTime >= SAVE_INTERVAL) {
-        lastSaveTime = now;
-        onTimeUpdate(currentTime);
-      }
-    };
-
-    const handlePause = () => {
-      if (!isActive || !onTimeUpdate) return;
-      const player = playerRef.current?.plyr;
-      if (!player) return;
-      const currentTime = player.currentTime;
-      if (currentTime) {
-        onTimeUpdate(currentTime);
-      }
-    };
-
-    const handleEnded = () => {
-      if (!isActive) return;
-      console.log('Video ended event fired!');
-      const player = playerRef.current?.plyr;
-      if (!player) return;
-      const currentTime = player.currentTime;
-      if (currentTime && onTimeUpdate) {
-        onTimeUpdate(currentTime);
-      }
-      if (onEnded) {
-        console.log('Calling onEnded callback');
-        onEnded();
-      }
-    };
-
     const attachListeners = () => {
-      if (!isActive || listenersAttached) return;
+      if (!isActive) return;
       
       const ref = playerRef.current;
       if (!ref || !ref.plyr) {
@@ -201,13 +159,52 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       const player = ref.plyr;
       
       if (typeof player.on !== 'function') {
-        console.log('Player.on is not a function');
         return;
       }
 
-      console.log('Attaching player event listeners');
+      let lastSaveTime = 0;
+      const SAVE_INTERVAL = 3000;
 
-      // Attach listeners
+      const handleTimeUpdate = () => {
+        if (!isActive || !onTimeUpdate) return;
+        const currentTime = player.currentTime;
+        const now = Date.now();
+        
+        if (currentTime && now - lastSaveTime >= SAVE_INTERVAL) {
+          lastSaveTime = now;
+          onTimeUpdate(currentTime);
+        }
+      };
+
+      const handlePause = () => {
+        if (!isActive || !onTimeUpdate) return;
+        const currentTime = player.currentTime;
+        if (currentTime) {
+          onTimeUpdate(currentTime);
+        }
+      };
+
+      const handleEnded = () => {
+        if (!isActive) return;
+        const currentTime = player.currentTime;
+        if (currentTime && onTimeUpdate) {
+          onTimeUpdate(currentTime);
+        }
+        if (onEnded) {
+          onEnded();
+        }
+      };
+
+      // Remove any existing listeners first
+      try {
+        player.off('timeupdate', handleTimeUpdate);
+        player.off('pause', handlePause);
+        player.off('ended', handleEnded);
+      } catch (error) {
+        // Ignore
+      }
+
+      // Attach new listeners
       if (onTimeUpdate) {
         player.on('timeupdate', handleTimeUpdate);
         player.on('pause', handlePause);
@@ -215,10 +212,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       
       if (onEnded) {
         player.on('ended', handleEnded);
-        console.log('Attached ended event listener');
       }
-
-      listenersAttached = true;
 
       // Store cleanup function
       cleanupFns.push(() => {
