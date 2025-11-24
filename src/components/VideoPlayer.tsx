@@ -9,9 +9,10 @@ interface VideoPlayerProps {
   onTimeUpdate?: (currentTime: number) => void;
   onEnded?: () => void;
   autostart?: boolean;
+  countdownOverlay?: React.ReactNode;
 }
 
-const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autostart = false }: VideoPlayerProps) => {
+const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autostart = false, countdownOverlay }: VideoPlayerProps) => {
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -262,7 +263,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
   }, [onTimeUpdate, onEnded]);
 
   return (
-    <div className="w-full rounded-lg overflow-hidden bg-black">
+    <div className="w-full rounded-lg overflow-hidden bg-black relative">
       <Plyr
         ref={playerRef}
         source={{
@@ -288,6 +289,7 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
           ],
         }}
       />
+      {countdownOverlay}
     </div>
   );
 };
