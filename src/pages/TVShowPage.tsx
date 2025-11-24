@@ -75,23 +75,22 @@ const TVShowPage = () => {
     const newEpisode = nextEpisodeInfo.episode;
     const wasSeasonChange = newSeason.id !== selectedSeason?.id;
     
-    // Update episode states
-    setSelectedSeason(newSeason);
-    setSelectedEpisode(newEpisode);
-    setInitialTime(0);
-    
-    // Clear countdown state
-    setNextEpisodeInfo(null);
+    // First, hide the countdown overlay immediately
     setShowCountdown(false);
+    setNextEpisodeInfo(null);
     
-    // Trigger autostart after a brief delay to ensure states are updated
+    // Then update the episode after overlay is gone
     setTimeout(() => {
+      setSelectedSeason(newSeason);
+      setSelectedEpisode(newEpisode);
+      setInitialTime(0);
       setShouldAutostart(true);
+      
       toast({
         title: wasSeasonChange ? "Next Season" : "Next Episode",
         description: `Now playing: ${newEpisode.title}`,
       });
-    }, 100);
+    }, 50);
   }, [nextEpisodeInfo, selectedSeason, toast]);
 
   const handleEpisodeEnded = useCallback(() => {
