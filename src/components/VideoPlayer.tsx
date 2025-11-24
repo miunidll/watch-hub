@@ -146,11 +146,13 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
 
       const handleEnded = () => {
         if (!isActive) return;
+        console.log('Video ended event fired!');
         const currentTime = player.currentTime;
         if (currentTime && onTimeUpdate) {
           onTimeUpdate(currentTime);
         }
         if (onEnded) {
+          console.log('Calling onEnded callback');
           onEnded();
         }
       };

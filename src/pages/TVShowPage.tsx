@@ -74,6 +74,7 @@ const TVShowPage = () => {
   }, [nextEpisodeInfo, selectedSeason, toast]);
 
   const handleEpisodeEnded = useCallback(() => {
+    console.log('handleEpisodeEnded called!', { autoplay, selectedSeason: selectedSeason?.id, selectedEpisode: selectedEpisode?.id });
     if (!selectedSeason || !selectedEpisode || !show || !autoplay) return;
 
     // Find current episode index
@@ -84,6 +85,7 @@ const TVShowPage = () => {
     // Check if there's a next episode in the current season
     if (currentEpisodeIndex < selectedSeason.episodes.length - 1) {
       const nextEpisode = selectedSeason.episodes[currentEpisodeIndex + 1];
+      console.log('Setting next episode:', nextEpisode.title);
       setNextEpisodeInfo({ season: selectedSeason, episode: nextEpisode });
       setShowCountdown(true);
       return;
@@ -95,6 +97,7 @@ const TVShowPage = () => {
       const nextSeason = show.seasons[currentSeasonIndex + 1];
       const firstEpisode = nextSeason.episodes[0];
       
+      console.log('Setting next season:', nextSeason.number, firstEpisode.title);
       setNextEpisodeInfo({ season: nextSeason, episode: firstEpisode });
       setShowCountdown(true);
       return;
