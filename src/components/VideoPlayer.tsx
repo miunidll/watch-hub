@@ -106,21 +106,25 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     if (!onTimeUpdate && !onEnded) return;
 
     let isActive = true;
-    let listenersAttached = false;
     const cleanupFns: (() => void)[] = [];
 
     const attachListeners = () => {
-      if (!isActive) return false;
-
-      const player = playerRef.current?.plyr;
+      if (!isActive) return;
       
-      if (!player) return false;
-
-      if (typeof player.on !== 'function' || typeof player.off !== 'function') {
-        return false;
+      const ref = playerRef.current;
+      if (!ref || !ref.plyr) {
+        console.log('Player ref not ready yet');
+        return;
       }
 
-      if (listenersAttached) return true;
+      const player = ref.plyr;
+      
+      if (typeof player.on !== 'function') {
+        console.log('Player.on is not a function');
+        return;
+      }
+
+      console.log('Attaching player event listeners');
 
       let lastSaveTime = 0;
       const SAVE_INTERVAL = 3000;
@@ -157,16 +161,16 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
         }
       };
 
+      // Remove any existing listeners first
       try {
-        if (typeof player.off === 'function') {
-          player.off('timeupdate');
-          player.off('pause');
-          player.off('ended');
-        }
+        player.off('timeupdate', handleTimeUpdate);
+        player.off('pause', handlePause);
+        player.off('ended', handleEnded);
       } catch (error) {
         // Ignore
       }
 
+      // Attach new listeners
       if (onTimeUpdate) {
         player.on('timeupdate', handleTimeUpdate);
         player.on('pause', handlePause);
@@ -174,63 +178,39 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
       
       if (onEnded) {
         player.on('ended', handleEnded);
+        console.log('Attached ended event listener');
       }
-      
-      listenersAttached = true;
 
+      // Store cleanup function
       cleanupFns.push(() => {
         try {
-          const currentPlayer = playerRef.current?.plyr;
-          if (currentPlayer && typeof currentPlayer.off === 'function') {
-            currentPlayer.off('timeupdate', handleTimeUpdate);
-            currentPlayer.off('pause', handlePause);
-            currentPlayer.off('ended', handleEnded);
+          if (player && typeof player.off === 'function') {
+            player.off('timeupdate', handleTimeUpdate);
+            player.off('pause', handlePause);
+            player.off('ended', handleEnded);
           }
         } catch (error) {
           // Ignore
         }
       });
-
-      return true;
     };
 
-    const immediateSuccess = attachListeners();
+    // Try to attach immediately
+    attachListeners();
     
-    if (!immediateSuccess) {
-      const player = playerRef.current?.plyr;
-      if (player && typeof player.once === 'function') {
-        const readyHandler = () => attachListeners();
-        
-        player.once('ready', readyHandler);
-        cleanupFns.push(() => {
-          try {
-            const p = playerRef.current?.plyr;
-            if (p && typeof p.off === 'function') {
-              p.off('ready', readyHandler);
-            }
-          } catch (e) {
-            // Ignore
-          }
-        });
-      }
-      
-      const retry1 = setTimeout(() => {
-        if (!listenersAttached && isActive) attachListeners();
-      }, 300);
-      
-      const retry2 = setTimeout(() => {
-        if (!listenersAttached && isActive) attachListeners();
-      }, 700);
-      
-      cleanupFns.push(() => {
-        clearTimeout(retry1);
-        clearTimeout(retry2);
-      });
-    }
+    // Also try after short delays to catch when player becomes ready
+    const timer1 = setTimeout(attachListeners, 100);
+    const timer2 = setTimeout(attachListeners, 500);
+    const timer3 = setTimeout(attachListeners, 1000);
+    
+    cleanupFns.push(() => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    });
 
     return () => {
       isActive = false;
-      listenersAttached = false;
       cleanupFns.forEach(fn => {
         try {
           fn();
