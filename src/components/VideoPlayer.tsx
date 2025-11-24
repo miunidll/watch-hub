@@ -65,6 +65,30 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     };
   }, [initialTime]);
 
+  // Track fullscreen state in a ref that persists across renders
+  const wasFullscreenRef = useRef(false);
+
+  // Monitor fullscreen changes and store in ref
+  useEffect(() => {
+    const player = playerRef.current?.plyr;
+    if (!player) return;
+
+    const handleFullscreenChange = () => {
+      const isFullscreen = player.fullscreen?.active || false;
+      wasFullscreenRef.current = isFullscreen;
+    };
+
+    player.on('enterfullscreen', handleFullscreenChange);
+    player.on('exitfullscreen', handleFullscreenChange);
+
+    return () => {
+      try {
+        player.off('enterfullscreen', handleFullscreenChange);
+        player.off('exitfullscreen', handleFullscreenChange);
+      } catch (e) {}
+    };
+  }, []);
+
   // Update video source when URL changes without recreating player
   useEffect(() => {
     const player = playerRef.current?.plyr;
@@ -73,12 +97,9 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
     // Only update if the source is different
     const currentSource = player.source?.sources?.[0]?.src;
     if (currentSource !== url) {
-      // Check if we're in fullscreen before changing source
-      const wasFullscreen = player.fullscreen?.active || false;
-      console.log('🔄 Changing video source. Was fullscreen:', wasFullscreen);
+      const shouldRestoreFullscreen = wasFullscreenRef.current;
       
-      // Store current time
-      const currentTime = player.currentTime || 0;
+      console.log('🔄 Changing video source. Was fullscreen:', shouldRestoreFullscreen);
       
       player.source = {
         type: 'video',
@@ -90,37 +111,29 @@ const VideoPlayer = ({ url, title, initialTime = 0, onTimeUpdate, onEnded, autos
           },
         ],
       };
-      console.log('📹 Updated video source to:', title);
       
-      // Restore fullscreen after source change
-      if (wasFullscreen) {
-        // Wait for loadedmetadata to ensure player is ready
+      // Restore fullscreen if it was active
+      if (shouldRestoreFullscreen) {
         const restoreFullscreen = () => {
-          console.log('Attempting to restore fullscreen, current state:', player.fullscreen?.active);
-          
-          // Use a small delay to ensure DOM is ready
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              if (player.fullscreen && !player.fullscreen.active) {
-                player.fullscreen.enter();
-                console.log('✅ Fullscreen.enter() called');
-              }
-            });
-          });
+          if (player.fullscreen && !player.fullscreen.active) {
+            console.log('📺 Restoring fullscreen');
+            player.fullscreen.enter();
+          }
         };
         
-        const metadataHandler = () => {
-          console.log('📊 Metadata loaded');
-          restoreFullscreen();
-          player.off('loadedmetadata', metadataHandler);
-        };
-        
-        player.on('loadedmetadata', metadataHandler);
-        
-        // Fallback attempts
-        setTimeout(restoreFullscreen, 200);
-        setTimeout(restoreFullscreen, 500);
+        // Multiple attempts with different timing
+        setTimeout(restoreFullscreen, 100);
+        setTimeout(restoreFullscreen, 300);
+        setTimeout(restoreFullscreen, 600);
         setTimeout(restoreFullscreen, 1000);
+        
+        // Also try on canplay event
+        const canplayHandler = () => {
+          console.log('🎬 Canplay - restoring fullscreen');
+          restoreFullscreen();
+          player.off('canplay', canplayHandler);
+        };
+        player.on('canplay', canplayHandler);
       }
     }
   }, [url, title]);
