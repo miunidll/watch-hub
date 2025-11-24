@@ -24,6 +24,14 @@ class WatchProgressQueue {
   enqueue(userId: string, progress: WatchProgress) {
     const key = this.getKey(userId, progress);
     
+    // Debug logging for S1E3
+    const episodeInfo = `S${progress.seasonId}-E${progress.episodeId}`;
+    console.log(`📝 [QUEUE] Enqueueing ${episodeInfo} at ${progress.timestamp.toFixed(2)}s`, {
+      key,
+      queueSize: this.queue.size,
+      contentId: progress.contentId
+    });
+    
     // Update existing or add new
     this.queue.set(key, {
       progress,
@@ -32,10 +40,11 @@ class WatchProgressQueue {
       timestamp: Date.now()
     });
 
-    console.log(`📝 Queued save for ${key}, queue size: ${this.queue.size}`);
+    console.log(`✓ [QUEUE] Added to queue, new size: ${this.queue.size}`);
     
     // Start processing if not already running
     if (!this.processing) {
+      console.log('🚀 [QUEUE] Starting queue processing...');
       this.processQueue();
     }
   }
@@ -50,29 +59,34 @@ class WatchProgressQueue {
     const itemsToProcess = Array.from(this.queue.entries());
 
     for (const [key, item] of itemsToProcess) {
+      const episodeInfo = `S${item.progress.seasonId}-E${item.progress.episodeId}`;
+      
       try {
-        console.log(`💾 Attempting save for ${key} (attempt ${item.retries + 1}/${this.maxRetries})`);
+        console.log(`💾 [QUEUE] Saving ${episodeInfo} (attempt ${item.retries + 1}/${this.maxRetries})`, {
+          key,
+          timestamp: item.progress.timestamp
+        });
         
         const result = await saveWatchProgress(item.userId, item.progress);
         
         if (result.success) {
-          console.log(`✅ Successfully saved ${key}`);
+          console.log(`✅ [QUEUE] Successfully saved ${episodeInfo}`);
           this.queue.delete(key);
         } else {
-          throw new Error('Save failed');
+          throw new Error('Save failed: ' + (result.error?.message || 'Unknown error'));
         }
       } catch (error) {
-        console.error(`❌ Save failed for ${key}:`, error);
+        console.error(`❌ [QUEUE] Save failed for ${episodeInfo}:`, error);
         
         item.retries++;
         
         if (item.retries >= this.maxRetries) {
-          console.error(`🚫 Max retries reached for ${key}, removing from queue`);
+          console.error(`🚫 [QUEUE] Max retries reached for ${episodeInfo}, removing from queue`);
           this.queue.delete(key);
         } else {
           // Exponential backoff
           const delay = this.retryDelay * Math.pow(2, item.retries - 1);
-          console.log(`⏳ Will retry ${key} in ${delay}ms`);
+          console.log(`⏳ [QUEUE] Will retry ${episodeInfo} in ${delay}ms`);
           
           setTimeout(() => {
             this.processQueue();
