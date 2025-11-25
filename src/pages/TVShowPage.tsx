@@ -331,6 +331,7 @@ const TVShowPage = () => {
               <VideoPlayer
                 url={selectedEpisode.videoUrl}
                 title={selectedEpisode.title}
+                subtitles={selectedEpisode.subtitles}
                 initialTime={initialTime}
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleEpisodeEnded}
