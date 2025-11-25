@@ -160,7 +160,7 @@ const Index = () => {
       <footer className="border-t border-border mt-20">
         <div className="container mx-auto px-6 sm:px-8 py-8">
           <p className="text-center text-muted-foreground text-sm">
-            © 2025 MiuNet. All rights reserved.
+            © 2025 MiuNet. I am awesome.
           </p>
         </div>
       </footer>

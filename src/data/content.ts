@@ -17,6 +17,7 @@ export interface Episode {
   number: number;
   videoUrl: string;
   duration: string;
+  subtitles: Subtitle[]
 }
 
 export interface Season {
@@ -34,6 +35,11 @@ export interface TVShow {
   trailer: string;
   year: number;
   seasons: Season[];
+}
+
+export interface Subtitle {
+  subtitleUrl: string;
+  language: string;
 }
 
 export type Content = Movie | TVShow;
