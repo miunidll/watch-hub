@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const isLogin = true; // Signup disabled
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -16,8 +16,8 @@ const Auth = () => {
   const { user, signIn, signUp } = useAuth();
 
   useEffect(() => {
-    document.title = isLogin ? 'Sign In - MiuNet' : 'Sign Up - MiuNet';
-  }, [isLogin]);
+    document.title = 'Sign In - MiuNet';
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -38,19 +38,11 @@ const Auth = () => {
     }
 
     try {
-      if (isLogin) {
-        await signIn(email, password);
-        toast({
-          title: "Success",
-          description: "Signed in successfully!",
-        });
-      } else {
-        await signUp(email, password);
-        toast({
-          title: "Success",
-          description: "Account created successfully!",
-        });
-      }
+      await signIn(email, password);
+      toast({
+        title: "Success",
+        description: "Signed in successfully!",
+      });
       navigate('/');
     } catch (error: any) {
       toast({
@@ -70,7 +62,7 @@ const Auth = () => {
           </div>
           <h1 className="text-3xl font-bold">MiuNet</h1>
           <p className="text-muted-foreground mt-2">
-            {isLogin ? 'Welcome back' : 'Create your account'}
+            Welcome back
           </p>
         </div>
 
@@ -99,18 +91,9 @@ const Auth = () => {
             </div>
 
             <Button type="submit" className="w-full">
-              {isLogin ? 'Sign In' : 'Sign Up'}
+              Sign In
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-            </button>
-          </div>
         </div>
 
         <div className="mt-6 text-center">
