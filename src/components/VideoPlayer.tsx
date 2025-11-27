@@ -132,11 +132,12 @@ const VideoPlayer = ({ url, title, subtitles = [], initialTime = 0, onTimeUpdate
             type: 'video/mp4',
           },
         ],
-          tracks: subtitles.map((sub) => ({
-            kind: 'subtitles',
+          tracks: subtitles.map((sub, index) => ({
+            kind: 'captions',
             label: sub.language.charAt(0).toUpperCase() + sub.language.slice(1),
             srclang: sub.language,
             src: sub.subtitleUrl,
+            default: index === 0,
           })),
       };
       
@@ -388,11 +389,12 @@ const VideoPlayer = ({ url, title, subtitles = [], initialTime = 0, onTimeUpdate
               type: 'video/mp4',
             },
           ],
-          tracks: subtitles.map((sub) => ({
-            kind: 'subtitles',
+          tracks: subtitles.map((sub, index) => ({
+            kind: 'captions',
             label: sub.language.charAt(0).toUpperCase() + sub.language.slice(1),
             srclang: sub.language,
             src: sub.subtitleUrl,
+            default: index === 0,
           })),
         }}
         options={{
@@ -407,6 +409,10 @@ const VideoPlayer = ({ url, title, subtitles = [], initialTime = 0, onTimeUpdate
             'settings',
             'fullscreen',
           ],
+          captions: {
+            active: true,
+            update: true,
+          },
         }}
       />
     </div>
