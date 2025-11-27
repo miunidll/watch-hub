@@ -9,6 +9,7 @@ export interface Movie {
   videoUrl: string;
   year: number;
   duration: string;
+  subtitles?: Subtitle[];
 }
 
 export interface Episode {

@@ -116,6 +116,7 @@ const MoviePage = () => {
             title={movie.title}
             initialTime={initialTime}
             onTimeUpdate={handleTimeUpdate}
+            subtitles={movie.subtitles}
           />
         </div>
       </div>
