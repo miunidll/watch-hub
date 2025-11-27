@@ -116,6 +116,11 @@ All colors MUST be HSL.
   line-height: 1.4 !important;
 }
 
+/* Increase subtitle size in fullscreen */
+.plyr--fullscreen .plyr__captions {
+  font-size: 2.8em !important;
+}
+
 .plyr__caption {
   background: rgba(0, 0, 0, 0.85) !important;
   color: #fff !important;
