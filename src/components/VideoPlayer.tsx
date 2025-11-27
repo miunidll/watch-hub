@@ -132,13 +132,19 @@ const VideoPlayer = ({ url, title, subtitles = [], initialTime = 0, onTimeUpdate
             type: 'video/mp4',
           },
         ],
-          tracks: subtitles.map((sub, index) => ({
-            kind: 'captions',
-            label: sub.language.charAt(0).toUpperCase() + sub.language.slice(1),
-            srclang: sub.language,
-            src: sub.subtitleUrl,
-            default: index === 0,
-          })),
+          tracks: subtitles.map((sub, index) => {
+            const track: any = {
+              kind: 'captions',
+              label: sub.language.charAt(0).toUpperCase() + sub.language.slice(1),
+              srclang: sub.language,
+              src: sub.subtitleUrl,
+            };
+            // Only add default property to first track
+            if (index === 0) {
+              track.default = true;
+            }
+            return track;
+          }),
       };
       
       // Restore fullscreen if it was active
@@ -389,13 +395,19 @@ const VideoPlayer = ({ url, title, subtitles = [], initialTime = 0, onTimeUpdate
               type: 'video/mp4',
             },
           ],
-          tracks: subtitles.map((sub, index) => ({
-            kind: 'captions',
-            label: sub.language.charAt(0).toUpperCase() + sub.language.slice(1),
-            srclang: sub.language,
-            src: sub.subtitleUrl,
-            default: index === 0,
-          })),
+          tracks: subtitles.map((sub, index) => {
+            const track: any = {
+              kind: 'captions',
+              label: sub.language.charAt(0).toUpperCase() + sub.language.slice(1),
+              srclang: sub.language,
+              src: sub.subtitleUrl,
+            };
+            // Only add default property to first track
+            if (index === 0) {
+              track.default = true;
+            }
+            return track;
+          }),
         }}
         options={{
           controls: [
