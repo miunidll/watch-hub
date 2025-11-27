@@ -71,3 +71,8 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## How to import content onto the site?
+Place your folder with torrent files inside > src/content/movies OR tv/{foldername}
+
+and run ./venv/bin/python content_importer.py

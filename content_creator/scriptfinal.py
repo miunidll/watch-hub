@@ -6,6 +6,8 @@ import subprocess
 from pathlib import Path
 from datetime import timedelta
 from langdetect import detect, DetectorFactory
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 
 DetectorFactory.seed = 0  # deterministic langdetect
 
@@ -23,7 +25,6 @@ PUNCTUATION = ".,!?;:"
 # -----------------------
 
 def imdb_search(title):
-    """Search IMDb API for a title, return the IMDb ID."""
     title_encoded = title.replace(" ", "%20")
     url = f"{API_BASE}/search/titles?query={title_encoded}"
     try:
@@ -31,15 +32,11 @@ def imdb_search(title):
         data = r.json()
         if "titles" in data and len(data["titles"]) > 0:
             return data["titles"][0]["id"]
-        else:
-            print(f"No results found for search. URL: {url}")
     except Exception as e:
-        print(f"IMDb search failed for URL: {url}")
-        print("Error:", e)
+        print(f"IMDb search failed for URL: {url} | Error: {e}")
     return None
 
 def imdb_get_episodes(imdb_id, season_num):
-    """Fetch episode titles and info for a season."""
     url = f"{API_BASE}/titles/{imdb_id}/episodes?season={season_num}"
     try:
         r = requests.get(url, timeout=10)
@@ -58,7 +55,6 @@ def imdb_get_episodes(imdb_id, season_num):
         return {}
 
 def fetch_youtube_trailer(title):
-    """Return YouTube video ID from a search."""
     query = f"{title} trailer"
     url = f"https://www.youtube.com/results?search_query={query.replace(' ','+')}"
     try:
@@ -75,15 +71,13 @@ def fetch_youtube_trailer(title):
 # -----------------------
 
 def get_mkv_tracks(mkv_path):
-    """Return list of subtitle tracks from mkvmerge JSON."""
     try:
         output = subprocess.run(
             ["mkvmerge", "-J", str(mkv_path)],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         ).stdout
         data = json.loads(output)
-        tracks = [t for t in data.get("tracks", []) if t.get("type") == "subtitles"]
-        return tracks
+        return [t for t in data.get("tracks", []) if t.get("type") == "subtitles"]
     except Exception as e:
         print(f"[!] Failed to get tracks from {mkv_path.name}: {e}")
         return []
@@ -100,36 +94,19 @@ def extract_subtitle(mkv_path, track_id, out_path):
     subprocess.run(["mkvextract", "tracks", str(mkv_path), f"{track_id}:{out_path}"])
 
 def fix_hebrew_punctuation(line):
-    """
-    Move leading punctuation (. , ! ? ; :) to the END of Hebrew lines.
-    Only applies if the line contains Hebrew characters.
-    """
     if not HEBREW_RANGE.search(line):
-        return line  # not Hebrew, do nothing
-
-    original = line.rstrip("\n")
-    trimmed = original.strip()
-
+        return line
+    trimmed = line.rstrip("\n").strip()
     if not trimmed:
         return line
-
-    # If punctuation is at the START -> flip it to the END
     if trimmed[0] in PUNCTUATION:
         flipped = trimmed[1:].rstrip() + trimmed[0]
         return flipped + ("\n" if line.endswith("\n") else "")
-
-    # If punctuation already at the end → keep as-is
     if trimmed[-1] in PUNCTUATION:
         return line
-
-    # Otherwise do nothing
     return line
 
 def apply_rtl_force(line):
-    """
-    Wrap Hebrew lines in RTL override so all video players display
-    the sentence in the correct visual order.
-    """
     if HEBREW_RANGE.search(line):
         stripped = line.strip("\n")
         return f"\u202B{stripped}\u202C\n"
@@ -137,47 +114,32 @@ def apply_rtl_force(line):
 
 def convert_srt_to_vtt(srt_path):
     vtt_path = srt_path.with_suffix(".vtt")
-
     with open(srt_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
-
     with open(vtt_path, "w", encoding="utf-8") as f:
         f.write("WEBVTT\n\n")
-
         for line in lines:
-
-            # Fix timestamp formatting
             if "-->" in line:
                 line = re.sub(r"(\d+:\d+:\d+),(\d+)", r"\1.\2", line)
                 f.write(line)
                 continue
-
-            # Numbers or empty lines → leave unchanged
             if line.strip().isdigit() or line.strip() == "":
                 f.write(line)
                 continue
-
-            # Hebrew: punctuation fix + RTL override
             if HEBREW_RANGE.search(line):
                 line = fix_hebrew_punctuation(line)
                 line = apply_rtl_force(line)
-                f.write(line)
-                continue
-
-            # English or anything else → write as-is
             f.write(line)
-
     srt_path.unlink()
     return vtt_path
 
 def process_subtitles(mkv_path, out_dir):
     out_dir.mkdir(parents=True, exist_ok=True)
     tracks = get_mkv_tracks(mkv_path)
-
     selected = []
     langs_found = set()
 
-    # First attempt: metadata matching
+    # metadata matching
     for t in tracks:
         lang = t.get("properties", {}).get("language", "").lower()
         name = t.get("properties", {}).get("track_name", "").lower()
@@ -188,7 +150,6 @@ def process_subtitles(mkv_path, out_dir):
             selected.append((t, "English"))
             langs_found.add("English")
 
-    # Fallback
     fallback = False
     if not selected:
         fallback = True
@@ -226,6 +187,23 @@ def process_subtitles(mkv_path, out_dir):
         })
     return final_subs
 
+# -----------------------
+# MKV → MP4 Conversion
+# -----------------------
+
+def convert_mkv_to_mp4(mkv_path):
+    mp4_path = mkv_path.with_suffix(".mp4")
+    # ffmpeg: copy all streams to avoid re-encoding
+    cmd = [
+        "ffmpeg", "-y", "-i", str(mkv_path),
+        "-c", "copy",
+        str(mp4_path)
+    ]
+    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode == 0 and mp4_path.exists():
+        mkv_path.unlink()
+        return mp4_path
+    return None
 
 # -----------------------
 # Main scanning
@@ -267,6 +245,27 @@ def scan_folder(folder_path, title_override=None):
         except Exception as e:
             print("Failed to fetch IMDb details:", e)
 
+    def process_file(f):
+        subtitle_dir = f.parent / "subtitles"
+        subtitle_dir.mkdir(exist_ok=True)
+        vtts = process_subtitles(f, subtitle_dir)
+        mp4_file = f
+        if f.suffix.lower() == ".mkv":
+            mp4_file = convert_mkv_to_mp4(f)
+            if not mp4_file:
+                print(f"Failed to convert {f.name}")
+                mp4_file = f
+        ep_match = re.search(r"[Ss](\d+)[Ee](\d+)", f.name)
+        e_num = int(ep_match.group(2)) if ep_match else 1
+        return {
+            "id": f"e{e_num}",
+            "title": f.stem,
+            "number": e_num,
+            "videoUrl": str(mp4_file.resolve()),
+            "duration": "",
+            "subtitles": vtts
+        }
+
     if is_tv:
         output["seasons"] = []
         for season_folder in season_folders:
@@ -275,25 +274,18 @@ def scan_folder(folder_path, title_override=None):
                 continue
             season_num = int(m.group(1))
             episodes_meta = imdb_get_episodes(imdb_id, season_num)
-            episodes = []
-
             files = sorted([f for f in season_folder.iterdir() if f.is_file() and f.suffix in [".mp4",".mkv"]])
-            for f in files:
-                ep_match = re.search(r"[Ss](\d+)[Ee](\d+)", f.name)
-                if ep_match:
-                    e_num = int(ep_match.group(2))
-                    ep_info = episodes_meta.get(e_num, {"title": f"Episode {e_num}", "duration": ""})
-                    subtitle_dir = season_folder / "subtitles"
-                    subtitle_dir.mkdir(exist_ok=True)
-                    vtts = process_subtitles(f, subtitle_dir)
-                    episodes.append({
-                        "id": f"e{e_num}",
-                        "title": ep_info.get("title"),
-                        "number": e_num,
-                        "videoUrl": str(f.resolve()),
-                        "duration": ep_info.get("duration"),
-                        "subtitles": vtts
-                    })
+
+            episodes = []
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                future_map = {executor.submit(process_file, f): f for f in files}
+                for future in tqdm(as_completed(future_map), total=len(files), desc="Converting MKVs", ncols=100):
+                    ep_data = future.result()
+                    # fetch title from IMDb if available
+                    ep_info = episodes_meta.get(ep_data["number"], {"title": ep_data["title"], "duration": ""})
+                    ep_data["title"] = ep_info.get("title")
+                    ep_data["duration"] = ep_info.get("duration")
+                    episodes.append(ep_data)
 
             output["seasons"].append({
                 "id": f"s{season_num}",
@@ -301,15 +293,17 @@ def scan_folder(folder_path, title_override=None):
                 "episodes": sorted(episodes, key=lambda x: x["number"])
             })
     else:
-        # Movie
         files = [f for f in folder.iterdir() if f.is_file() and f.suffix in [".mp4",".mkv"]]
-        if files:
-            f = files[0]
-            output["videoUrl"] = str(f.resolve())
-            output["duration"] = ""
-            subtitle_dir = folder / "subtitles"
-            subtitle_dir.mkdir(exist_ok=True)
-            output["subtitles"] = process_subtitles(f, subtitle_dir)
+        episodes = []
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            future_map = {executor.submit(process_file, f): f for f in files}
+            for future in as_completed(future_map):
+                episodes.append(future.result())
+        if episodes:
+            f = episodes[0]["videoUrl"]
+            output["videoUrl"] = f
+            output["duration"] = episodes[0]["duration"]
+            output["subtitles"] = episodes[0]["subtitles"]
 
     # Save JSON
     json_path = f"{folder_name}.json"
@@ -325,4 +319,4 @@ if __name__ == "__main__":
     folder = input("Enter folder path: ").strip()
     title = input("Enter title override (optional): ").strip() or None
     print("\nProcessing started...\n")
-    scan_folder(folder, title_override=title) # make sure vtt is flipped for .,.
+    scan_folder(folder, title_override=title)
