@@ -13,6 +13,25 @@ interface VideoPlayerProps {
   autostart?: boolean;
 }
 
+// Map language names to ISO 639-1 codes
+const getLanguageCode = (language: string): string => {
+  const mapping: Record<string, string> = {
+    'english': 'en',
+    'hebrew': 'he',
+    'spanish': 'es',
+    'french': 'fr',
+    'german': 'de',
+    'italian': 'it',
+    'portuguese': 'pt',
+    'russian': 'ru',
+    'chinese': 'zh',
+    'japanese': 'ja',
+    'korean': 'ko',
+    'arabic': 'ar',
+  };
+  return mapping[language.toLowerCase()] || language.toLowerCase().slice(0, 2);
+};
+
 const VideoPlayer = ({ url, title, subtitles = [], initialTime = 0, onTimeUpdate, onEnded, autostart = false }: VideoPlayerProps) => {
   const playerRef = useRef<any>(null);
 
@@ -136,7 +155,7 @@ const VideoPlayer = ({ url, title, subtitles = [], initialTime = 0, onTimeUpdate
             const track: any = {
               kind: 'captions',
               label: sub.language.charAt(0).toUpperCase() + sub.language.slice(1),
-              srclang: sub.language,
+              srclang: getLanguageCode(sub.language),
               src: sub.subtitleUrl,
             };
             // Only add default property to first track
@@ -399,7 +418,7 @@ const VideoPlayer = ({ url, title, subtitles = [], initialTime = 0, onTimeUpdate
             const track: any = {
               kind: 'captions',
               label: sub.language.charAt(0).toUpperCase() + sub.language.slice(1),
-              srclang: sub.language,
+              srclang: getLanguageCode(sub.language),
               src: sub.subtitleUrl,
             };
             // Only add default property to first track
